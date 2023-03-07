@@ -7,10 +7,11 @@
         "dtlogtarget":"File",
         "dtlogdir":"",
         "dtlogfile":"",
-        "dtlogrefresh":"true"
+        "dtlogrefresh":"true",
+        "dtteamnames":"default\nblackknights",
+        "dttheme":"Auto"
     },
     "poker": {
-        "table":"default",
         "nickname":"dave",
         "picture":"image1.png"
     }

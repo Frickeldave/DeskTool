@@ -1,4 +1,12 @@
-# Enable Chromium engine
+
+
+### My personal tips and tricks
+
+### How to convert image to icons
+
+https://www.icoconverter.com/
+
+### Enable Chromium engine
 
 To enable DeskTool to use the chromium engine, you have to use this [guide](https://pode.readthedocs.io/en/latest/Tutorials/Misc/DesktopApp/#using-chromium-instead-of-internet-explorer). The documentation is a bit incomplete, so here is another try to describe that.
 
