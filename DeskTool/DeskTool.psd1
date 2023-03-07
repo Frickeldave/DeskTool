@@ -7,7 +7,7 @@
     Author = 'David Koenig'
     CompanyName = 'Frickeldave'
     Copyright = '(c) David Koenig. All rights reserved.'
-    Description = 'A module to start the DeskTool'
+    Description = 'DeskTool is a multi-functional tool for agile teams'
     FunctionsToExport = 'Start-DeskTool'
     CmdletsToExport = ''
     VariablesToExport = ''

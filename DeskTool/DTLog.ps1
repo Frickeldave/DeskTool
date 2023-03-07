@@ -1,38 +1,12 @@
-function Write-DTLog() {
 
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$Message,
-        [Parameter(Mandatory=$false)]
-        [string]$Component,
-        [Parameter(Mandatory=$false)]
-        [ValidateSet("Error", "Warning", "Info")]
-        [string]$Type="Info"
-        
-    )
-
-    if ([string]::IsNullOrEmpty($env:DeskLog_RootDir)) { $env:DeskLog_RootDir=$PSScriptRoot }
-    if ($env:DeskLog_LogToFile -eq $true) { $Target="File" } else {$Target="Console"}
-    if ([string]::IsNullOrEmpty($env:DeskLog_LogFileDir)) { $env:DeskLog_LogFileDir=$env:DeskLog_RootDir }
-    if ([string]::IsNullOrEmpty($env:DeskLog_LogFileName)) { $env:DeskLog_LogFileName="DeskLog.log" }
-
-
-    if(Get-Command Write-HalaLog) { 
-        Write-DTOut -Message $Message -Target $Target -Component $Component -Type $Type -LogFileDir $env:DeskLog_LogFileDir -LogFileName $env:DeskLog_LogFileName
-    } else {
-        Write-Output $Message
-    }
-}
-
-function Write-DTOut {
+function Write-DTLog {
     param (
         [Parameter(Mandatory=$true)]
         [string]$Message,
 
         [Parameter(Mandatory=$false)]
         [ValidateSet("File", "Console")]
-        [string]$Target="Console",
+        [string]$Target=$null,
 
         [Parameter(Mandatory=$false)]
         [string]$LogFileDir=$null,
@@ -41,12 +15,19 @@ function Write-DTOut {
         [string]$LogFileName=$null,
 
         [Parameter(Mandatory=$false)]
+        [switch]$RefreshLogFile,
+
+        [Parameter(Mandatory=$false)]
         [string]$Component="Main",
 
         [Parameter(Mandatory=$false)]
         [ValidateSet("Error", "Warning", "Info")]
         [string]$Type="Info"
     )
+
+    if([string]::IsNullOrEmpty($LogFileDir)) { $LogFileDir =  Get-DTConfigValue -ConfigGroup "common" -ConfigName "dtlogdir" }
+    if([string]::IsNullOrEmpty($LogFileName)) { $LogFileName = Get-DTConfigValue -ConfigGroup "common" -ConfigName "dtlogfile" }
+    if([string]::IsNullOrEmpty($Target)) { $Target = Get-DTConfigValue -ConfigGroup "common" -ConfigName "dtlogtarget" }
 
     $_datetime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     
@@ -68,7 +49,7 @@ function Write-DTOut {
         }
 
         if($null -eq $LogFileName) {
-            $_logfile = "hala.log"
+            $_logfile = "app.log"
         } else {
             $_logfile = $LogFileName
         }
@@ -79,7 +60,11 @@ function Write-DTOut {
         } catch { 
             Write-Error "Unable to write to output file $($_logdir)/$($_logfile)" 
         }
-        $_message | Out-File -Append -Encoding UTF8 -FilePath "$($_logdir)/$($_logfile)"
+        if($RefreshLogFile) {
+            $_message | Out-File -Encoding UTF8 -FilePath "$($_logdir)/$($_logfile)"
+        } else {
+            $_message | Out-File -Append -Encoding UTF8 -FilePath "$($_logdir)/$($_logfile)"
+        }
     } else {
         $_message | Out-Host
     }
