@@ -1,5 +1,5 @@
 
-function Write-DTLog {
+function Write-DTCLog {
     param (
         [Parameter(Mandatory=$true)]
         [string]$Message,
@@ -25,10 +25,11 @@ function Write-DTLog {
         [string]$Type="Info"
     )
 
-    if([string]::IsNullOrEmpty($LogFileDir)) { $LogFileDir =  Get-DTConfigValue -ConfigGroup "common" -ConfigName "dtlogdir" }
-    if([string]::IsNullOrEmpty($LogFileName)) { $LogFileName = Get-DTConfigValue -ConfigGroup "common" -ConfigName "dtlogfile" }
-    if([string]::IsNullOrEmpty($Target)) { $Target = Get-DTConfigValue -ConfigGroup "common" -ConfigName "dtlogtarget" }
-
+    # Logfile information can be set by global variables when there are not provided 
+    if([string]::IsNullOrEmpty($LogFileDir)) { $LogFileDir = $global:_dt_log_file_dir }
+    if([string]::IsNullOrEmpty($LogFileName)) { $LogFileName = $global:_dt_log_file_name }
+    if([string]::IsNullOrEmpty($Target)) { $Target = $global:_dt_log_target }
+    
     $_datetime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     
     $_type = "I"

@@ -1,0 +1,18 @@
+{
+    "common": {
+        "dtlocalport":"8081",
+        "dtserveractive":"true",
+        "dtserveraddress":"192.168.51.123",
+        "dtserverport":"8081",
+        "dtlogtarget":"Console",
+        "dtlogdir":"",
+        "dtlogfile":"",
+        "dtlogrefresh":"true",
+        "dtteamnames":"default\nblackknights",
+        "dttheme":"Auto"
+    },
+    "poker": {
+        "nickname":"dave",
+        "picture":"image1.png"
+    }
+}

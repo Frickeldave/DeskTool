@@ -1,12 +1,23 @@
 function Get-DTPageHome {
+    
+    [CmdletBinding()]
+    param (
+        [string]$Title
+    )
+
     Set-PodeWebHomePage -Layouts @(
-        New-PodeWebHero -Title "$global:_dt_app_name" -Message 'This is the home page' -Content @(
+        New-PodeWebHero -Title "$Title" -Message 'This is the home page' -Content @(
             New-PodeWebText -Value 'Welcome to Desktool. This is simple local desktop app for IT teams with the most imports tools they need everyday.' -InParagraph -Alignment Center
         )
     )
 }
 
 function Get-DTPageConfig {
+
+    [CmdletBinding()]
+    param (
+        [string]$Title
+    )
 
     Add-PodeWebPage -Name 'Config' -Icon 'wrench' -Layouts @(
         New-PodeWebCard -Id 'webcard_config_common' -Name 'Common' -Content @(
@@ -39,6 +50,11 @@ function Get-DTPageConfig {
 }
 
 function Get-DTPagePoker {
+
+    [CmdletBinding()]
+    param (
+        [string]$Title
+    )
 
     Add-PodeWebPage -Name 'Poker' -Icon 'cards-playing-outline' -Layouts @(
         New-PodeWebCard -Id 'webcard_poker' -Name 'Poker' -Content @(

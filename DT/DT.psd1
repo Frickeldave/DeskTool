@@ -1,6 +1,6 @@
 @{
 
-    RootModule = 'DeskTool.psm1'
+    RootModule = 'DT.psm1'
     ModuleVersion = '1.0.0'
     CompatiblePSEditions = 'Core'
     GUID = '3f334d10-bbcc-4b97-8458-87813d003e47'
@@ -8,7 +8,7 @@
     CompanyName = 'Frickeldave'
     Copyright = '(c) David Koenig. All rights reserved.'
     Description = 'DeskTool is a multi-functional tool for agile teams'
-    FunctionsToExport = 'Start-DeskTool'
+    FunctionsToExport = 'Start-DT'
     CmdletsToExport = ''
     VariablesToExport = ''
     AliasesToExport = ''
