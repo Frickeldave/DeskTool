@@ -1,3 +1,34 @@
+$script:_dts_log_file_dir = $null
+$script:_dts_log_file_name = $null
+$script:_dts_log_target = $null
+
+function Initialize-DTCLog {
+    [CmdletBinding()]
+    param (
+        [string]$LogBasePath,
+        [string]$LogFolder,
+        [string]$LogFileDir,
+        [string]$LogFileName,
+        [string]$LogTarget
+    )
+
+
+	$script:_dts_log_file_dir = $(if([string]::IsNullOrEmpty($LogFileDir)) { "$LogBasePath\$LogFolder" } else { $LogFileDir })
+	$script:_dts_log_file_name = $(if([string]::IsNullOrEmpty($LogFileName)) { "default.log" } else { $LogFileName })
+	
+
+	if([string]::IsNullOrEmpty($global:_dts_log_target)) { $global:_dts_log_target = "Console" }
+
+    if (-Not (Test-Path $ConfigBasePath\$ConfigFolder)) {
+        New-Item -Path $ConfigBasePath\$ConfigFolder -ItemType Directory | Out-Null
+    }
+
+    if (-Not (Test-Path $ConfigBasePath\$ConfigFolder\$ConfigFile)) {
+        Copy-Item -Path $PSScriptRoot\$ConfigFile -Destination $ConfigBasePath\$ConfigFolder\$ConfigFile | Out-Null
+    }
+}
+
+
 
 function Write-DTCLog {
     param (

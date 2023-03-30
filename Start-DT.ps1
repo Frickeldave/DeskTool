@@ -1,5 +1,5 @@
-if (Get-Module DeskTool) { 
-    Remove-Module DeskTool -Force
+if (Get-Module DT) { 
+    Remove-Module DT -Force
 }
 
 if (-Not (Test-Path $env:LOCALAPPDATA\Frickeldave\DT)) {

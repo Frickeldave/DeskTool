@@ -1,0 +1,10 @@
+{
+    "common": {
+        "dtslocalport":"8082",
+        "dtsserverport":"8081",
+        "dtslogtarget":"Console",
+        "dtslogdir":"",
+        "dtslogfile":"",
+        "dtslogrefresh":"true"
+    }
+}
