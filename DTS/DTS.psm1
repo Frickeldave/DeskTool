@@ -7,10 +7,13 @@ function Start-DTS {
 	. $PSScriptRoot\DTCHelper.ps1
 
 	# DT specific config
-	. $PSScriptRoot\DTConfig.ps1
+	. $PSScriptRoot\DTSConfig.ps1
 
 	# DT common config
 	. $PSScriptRoot\DTCConfig.ps1
+
+	# DTS endoints
+	. $PSScriptRoot\DTSEndpoints.ps1
 
 	# Set all static variables
 	$_dts_pode_version = "2.8.0"
@@ -22,51 +25,51 @@ function Start-DTS {
 	# Initialize the configuration
 	Initialize-DTSConfig -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -ConfigFile $_dts_config_file
 
-	# Initialize the logging which prevents to send logfile infos with every "Write-DTLog" command
-	Intialize-DTCLog -LogBasePath $_dts_base_path_app -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogFileTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
-	# Set global log variables. These are used by "DTCLog\Write-DTCLog" therfore we do not have to add them to every call of "Write-DTCLog".
-	# It is fine that there marked as not used in VSCode. There wil lbe used in the DTCLogs\Write-DTCLog function what is not detected by VSCode.
-	# TODO: Change to script vars in DTCLog analog to the var handling in DT(S)Config
-	[string]$global:_dts_log_file_dir = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir")
-	if([string]::IsNullOrEmpty($global:_dts_log_file_dir)) { $global:_dts_log_file_dir = "$_dts_base_path_app\DTS" }
-	
-	[string]$global:_dts_log_file_name = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile")
-	if([string]::IsNullOrEmpty($global:_dts_log_file_name)) { $global:_dts_log_file_name = "$_dts_app_name.log" }
-	
-	[string]$global:_dts_log_target = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
-	if([string]::IsNullOrEmpty($global:_dts_log_target)) { $global:_dts_log_target = "Console" }
-	
+	# Initialize the logging which prevents to send logfile infos with every "Write-DTCLog" command
+	Initialize-DTCLog -LogBasePath $_dts_base_path_app -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
+
 	# Refresh logfile
 	if((Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogrefresh") -eq $true) {
 		Write-DTCLog "Logfile refreshed" -Component "Module" -RefreshLogFile
 	}
 
-	$_dts_podeweb_port = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslocalport")
+	# Get the webservice port from config file
+	$_dts_podeweb_port = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtsserverport")
+
+	# Show some useful information in log output
+	if($(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget") -eq "File") {
+		Write-DTCLog -Message "Logoutput is set to ""File""" -Component "Module"
+		Write-DTCLog -Message "Logfile: $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir")\$(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile")" -Component "Module"
+	} else {
+		Write-DTCLog -Message "Logoutput is set to ""Console""" -Component "Module"
+	}
+	Write-DTCLog -Message "Serverport is: $_dts_podeweb_port" -Component "Module"
 
 	# Remove oh-my-posh when it is loaded, otherwise Pode will raise several errors
 	Remove-DTCOhMyPosh
 
 	# Import all needed pode modules
-	Import-DTCModule -ModuleName "pode" -ModuleVersion $_dt_pode_version
+	Import-DTCModule -ModuleName "pode" -ModuleVersion $_dts_pode_version
 
 	try {
 		Start-PodeServer {
 			Write-DTCLog "Start webservice on port $_dts_podeweb_port" -Component "Module"
-			Add-PodeEndpoint -Address "0.0.0.0" -Port $_dts_podeweb_port -Protocol Http -Name $_dts_app_name
+			Add-PodeEndpoint -Address "localhost" -Port $_dts_podeweb_port -Protocol Http -Name $_dts_app_name
 
 			New-PodeLoggingMethod -Custom -ScriptBlock {
 				param ( $item )
-	
-				if($null -ne $($item.LogFileDir) -and $null -ne $($item.LogFileName)) {
-					Write-DTCLog -Message $($item.Message) -Target "File" -Component "Sokovia" -LogFileDir "$($item.LogFileDir)" -LogFileName "$($item.LogFileName)" -Type "$($item.Type)"
-				} else {
-					Write-DTCLog -Message $($item.Message) -Target "Console" -Component "Sokovia" -Type $($item.Type)
-				}
+				Write-DTCLog -Message $($item.Message) -Component "RESTAPI" -Type $($item.Type)
 			} | Add-PodeLogger -Name "log" -ScriptBlock {
 				param ($item)
 				return $item
 			}
 
+			Write-DTCLog "Initialize endpoints" -Component "Module"
+			Initialize-DTSEndpoints -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
+			Write-DTCLog "Start endpoint ""status""" -Component "Module"
+			Get-DTSEndpointStatus
+			Write-DTCLog "Start endpoint ""pokergettable""" -Component "Module"
+			Get-DTSEndpointPokerGetTable
 		}
 	}
 	catch {

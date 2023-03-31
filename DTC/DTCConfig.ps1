@@ -15,13 +15,6 @@ function Initialize-DTCConfig {
     }
 }
 
-# function Get-DTCConfig {
-
-#     $_dt_jsonFile = Get-Content $global:_dt_base_path_user\$global:_dt_app_name\DTConfig.json
-#     $_dt_jsonObject = $_dt_jsonFile | ConvertFrom-Json
-
-#     return $_dt_jsonObject
-# }
 
 function Get-DTCConfigValue {
 

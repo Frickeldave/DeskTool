@@ -6,40 +6,40 @@ function Import-DTCModule {
         [string]$ModuleVersion
     )
     
-    Write-DTCLog "Start function Load-DTModule" -Component "Load-DTModule"
+    Write-DTCLog "Start function Import-DTCModule" -Component "Import-DTCModule"
 
     try {
         
         # Check if module is installed
         if (-Not ((Get-Module -ListAvailable -Name $ModuleName).Version -eq $ModuleVersion)) {
-            Write-DTCLog "Module $ModuleName in version $ModuleVersion is not installed" -Component "Load-DTModule"  -Type Warning
+            Write-DTCLog "Module $ModuleName in version $ModuleVersion is not installed" -Component "Import-DTCModule"  -Type Warning
 
-            Write-DTCLog "Set PSGallery to trusted to avoid WARNING messages" -Component "Load-DTModule"
+            Write-DTCLog "Set PSGallery to trusted to avoid WARNING messages" -Component "Import-DTCModule"
             Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
             
-            Write-DTCLog "Install Module $ModuleName in version $ModuleVersion" -Component "Load-DTModule"
+            Write-DTCLog "Install Module $ModuleName in version $ModuleVersion" -Component "Import-DTCModule"
             Install-Module -Name $ModuleName -RequiredVersion $ModuleVersion -Scope CurrentUser
 
-            Write-DTCLog "Set PSGallery to untrusted" -Component "Load-DTModule"
+            Write-DTCLog "Set PSGallery to untrusted" -Component "Import-DTCModule"
             Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted
         } else {
-            Write-DTCLog "Module $ModuleName in version $ModuleVersion already installed" -Component "Load-DTModule"
+            Write-DTCLog "Module $ModuleName in version $ModuleVersion already installed" -Component "Import-DTCModule"
         }
 
         # Check if module is imported
         if (-Not ((Get-Module -Name $ModuleName).Version -eq $ModuleVersion)) {
-            Write-DTCLog "Module $ModuleName in version $ModuleVersion is not imported to current session" -Component "Load-DTModule" -Type Warning
+            Write-DTCLog "Module $ModuleName in version $ModuleVersion is not imported to current session" -Component "Import-DTCModule" -Type Warning
           
-            Write-DTCLog "Import module $ModuleName in version $ModuleVersion" -Component "Load-DTModule"
+            Write-DTCLog "Import module $ModuleName in version $ModuleVersion" -Component "Import-DTCModule"
             Import-Module -Name $ModuleName -RequiredVersion $ModuleVersion -Scope Local
         } else {
-            Write-DTCLog "Module $ModuleName in version $ModuleVersion already imported" -Component "Load-DTModule"
+            Write-DTCLog "Module $ModuleName in version $ModuleVersion already imported" -Component "Import-DTCModule"
         }
 
     }
     catch {
-        Write-DTCLog "The installation/loading of module Module $ModuleName in version $ModuleVersion was not successful. Details: $($_.Exception)" -Component "Load-DTModule" -Type Error
-        Write-DTCLog "Set PSGallery to untrusted" -Component "Load-DTModule"
+        Write-DTCLog "The installation/loading of module Module $ModuleName in version $ModuleVersion was not successful. Details: $($_.Exception)" -Component "Import-DTCModule" -Type Error
+        Write-DTCLog "Set PSGallery to untrusted" -Component "Import-DTCModule"
         Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted
     } finally {
         
