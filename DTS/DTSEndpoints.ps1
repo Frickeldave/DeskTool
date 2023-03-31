@@ -27,7 +27,7 @@ function Get-DTSEndpointStatus {
 
     Add-PodeRoute -Method Get -Path '/api/v1/dts/status' -ScriptBlock {
 		
-        Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/status"; Type="Info"}
+        Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/status"; Component="Get-DTSEndpointStatus"; Type="Info"}
 
         $_return = New-Object -Type psobject
         $_return | Add-Member -MemberType NoteProperty -Name "currentTime" -Value (Get-Date -Format "yyyy-MM-dd HH:mm K") -Force
@@ -42,9 +42,9 @@ function Get-DTSEndpointPokerGetTable {
         New-Item -Path "$script:_endpoint_config_base_path\$script:_endpoint_config_folder\$script:_endpoint_folder\poker" -ItemType Directory | Out-Null
     }
     
-        Add-PodeRoute -Method Get -Path '/api/v1/dts/poker/gettable' -ScriptBlock {
-		
-        Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/gettable"; Type="Info"}
+    Add-PodeRoute -Method Get -Path '/api/v1/dts/poker/gettable' -ScriptBlock {
+
+        Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/gettable"; Component="Get-DTSEndpointPokerGetTable"; Type="Info"}
 
         $_return = New-Object -Type psobject
         $_return | Add-Member -MemberType NoteProperty -Name "pokerTableName" -Value "Wurschtsemmel" -Force

@@ -58,7 +58,12 @@ function Start-DTS {
 
 			New-PodeLoggingMethod -Custom -ScriptBlock {
 				param ( $item )
-				Write-DTCLog -Message $($item.Message) -Component "RESTAPI" -Type $($item.Type)
+				
+				#Initalize logging module wiht same parameters again, it's not available within the web session
+				. $PSScriptRoot\DTCLog.ps1
+				Initialize-DTCLog -LogBasePath $_dts_base_path_app -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
+				
+				Write-DTCLog -Message $($item.Message) -Component $($item.Component) -Type $($item.Type)
 			} | Add-PodeLogger -Name "log" -ScriptBlock {
 				param ($item)
 				return $item
