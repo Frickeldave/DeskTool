@@ -17,8 +17,8 @@ function Start-DTS {
 
 	# Set all static variables
 	$_dts_pode_version = "2.8.0"
-	$_dts_base_path_app = "$env:LOCALAPPDATA\Frickeldave"
-	$_dts_base_path_user = "$env:APPDATA\Frickeldave"
+	$_dts_base_path_app = "$env:ProgramData\Frickeldave"
+	$_dts_base_path_user = "$env:ProgramData\Frickeldave"
 	$_dts_config_file = "DTSConfig.json"
 	$_dts_app_name = "Desktool server"
 
@@ -59,7 +59,7 @@ function Start-DTS {
 			New-PodeLoggingMethod -Custom -ScriptBlock {
 				param ( $item )
 				
-				#Initalize logging module wiht same parameters again, it's not available within the web session
+				#Initalize logging module with same parameters again, otherwise it's not available within the web session
 				. $PSScriptRoot\DTCLog.ps1
 				Initialize-DTCLog -LogBasePath $_dts_base_path_app -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
 				
@@ -71,9 +71,8 @@ function Start-DTS {
 
 			Write-DTCLog "Initialize endpoints" -Component "Module"
 			Initialize-DTSEndpoints -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
-			Write-DTCLog "Start endpoint ""status""" -Component "Module"
-			Get-DTSEndpointStatus
-			Write-DTCLog "Start endpoint ""pokergettable""" -Component "Module"
+			
+			Get-DTSEndpointStatus 
 			Get-DTSEndpointPokerGetTable
 		}
 	}

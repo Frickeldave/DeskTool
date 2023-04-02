@@ -1,7 +1,7 @@
 {
     "common": {
         "dtsserverport":"8082",
-        "dtslogtarget":"File",
+        "dtslogtarget":"Console",
         "dtslogdir":"",
         "dtslogfile":"DTS.log",
         "dtslogrefresh":"true"
