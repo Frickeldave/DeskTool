@@ -3,7 +3,20 @@ GET http://localhost:8082/api/v1/dts/status HTTP/1.1
 
 ###
 
-GET http://localhost:8082/api/v1/dts/poker/gettable?name=sprint34&password=ThatsMyPassword HTTP/1.1
+GET http://localhost:8082/api/v1/dts/poker/gettablelist HTTP/1.1
+
 
 ###
-GET http://localhost:8082/api/v1/dts/poker/gettable?name=sprint34&password=ThatsMyPassword2 HTTP/1.1
+
+GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint01&password=ThatsMyPassword1 HTTP/1.1
+###
+GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint02&password=ThatsMyPassword2 HTTP/1.1
+###
+GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint03&password=ThatsMyPassword3 HTTP/1.1
+###
+GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint04&password=ThatsMyPassword4 HTTP/1.1
+
+###
+
+GET http://localhost:8082/api/v1/dts/poker/gettable?name=sprint01&password=ThatsMyPassword2 HTTP/1.1
+
