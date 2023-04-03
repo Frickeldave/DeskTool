@@ -36,50 +36,48 @@ function Get-DTSEndpointHelperPokerGetTableList {
     return $_return_obj_list
 }
 
-function Get-DTSEndpointHelperPokerGetTableByName {
+function Get-DTSEndpointHelperPokerGetTable {
     [CmdletBinding()]
     param (
-        [Parameter()]
         [string]$PokerBasePath,
-        [Parameter()]
         [string]$PokerTableName,
-        [switch]$Full
-    )   
-
-    Write-PodeLog -Name "log" -InputObject @{Message="Execute Get-DTSEndpointHelperPokerGetTableList"; Component="Get-DTSEndpointHelperPokerGetTableByName"; Type="Info"}
-    $_poker_table_list = Get-DTSEndpointHelperPokerGetTableList -PokerBasePath $PokerBasePath -Full:$Full
-
-    foreach($_poker_table in $_poker_table_list) {
-        if($_poker_table.pokerTableName -eq $PokerTableName) {
-            Write-PodeLog -Name "log" -InputObject @{Message="Found table with id $($_poker_table.pokerTableId)"; Component="Get-DTSEndpointHelperPokerGetTableByName"; Type="Info"}
-            return $_poker_table
-        }
-    }
-    
-    Write-PodeLog -Name "log" -InputObject @{Message="No table found"; Component="Get-DTSEndpointHelperPokerGetTableByName"; Type="Info"}
-    return $null
-}
-
-function Get-DTSEndpointHelperPokerGetTableById {
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]$PokerBasePath,
-        [Parameter()]
         [string]$PokerTableId,
         [switch]$Full
     )   
 
-    Write-PodeLog -Name "log" -InputObject @{Message="Execute Get-DTSEndpointHelperPokerGetTableList"; Component="Get-DTSEndpointHelperPokerGetTableById"; Type="Info"}
+    Write-PodeLog -Name "log" -InputObject @{Message="Execute Get-DTSEndpointHelperPokerGetTableList"; Component="Get-DTSEndpointHelperPokerGetTable"; Type="Info"}
     $_poker_table_list = Get-DTSEndpointHelperPokerGetTableList -PokerBasePath $PokerBasePath -Full:$Full
 
-    foreach($_poker_table in $_poker_table_list) {
-        if($_poker_table.pokerTableId -eq $PokerTableId) {
-            Write-PodeLog -Name "log" -InputObject @{Message="Found table with name $($_poker_table.pokerTableName)"; Component="Get-DTSEndpointHelperPokerGetTableById"; Type="Info"}
-            return $_poker_table
+    $_poker_table = $null
+
+    # Prefer to get the table by the id
+    if(-Not [string]::IsNullOrEmpty($PokerTableId)) {
+        Write-PodeLog -Name "log" -InputObject @{ Message="Get table by ID"; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
+        foreach($_table in $_poker_table_list) {
+            if($_table.pokerTableId -eq $PokerTableId) {
+                Write-PodeLog -Name "log" -InputObject @{Message="Found table with name $($_table.pokerTableId)"; Component="Get-DTSEndpointHelperPokerGetTable"; Type="Info"}
+                $_poker_table = $_table
+            }
         }
+    # Get the table by its name
+    } elseif (-Not [string]::IsNullOrEmpty($PokerTableName)) {
+        Write-PodeLog -Name "log" -InputObject @{ Message="Get table by name"; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
+        foreach($_table in $_poker_table_list) {
+            if($_table.pokerTableName -eq $PokerTableName) {
+                Write-PodeLog -Name "log" -InputObject @{Message="Found table with id $($_table.pokerTableName)"; Component="Get-DTSEndpointHelperPokerGetTable"; Type="Info"}
+                $_poker_table = $_table
+            }
+        }
+    # Neither ID or table name is given -> exit
+    } else {
+        $PokerTablePassword = $null
+        throw "Table ID (prefered) or name must be given"
     }
-    
-    Write-PodeLog -Name "log" -InputObject @{Message="No table found"; Component="Get-DTSEndpointHelperPokerGetTableById"; Type="Info"}
-    return $null
+
+    # Report that no object was found 
+    if($null -eq $_poker_table) {
+        Write-PodeLog -Name "log" -InputObject @{Message="No table found"; Component="Get-DTSEndpointHelperPokerGetTable"; Type="Info"}
+    }
+
+    return $_poker_table
 }

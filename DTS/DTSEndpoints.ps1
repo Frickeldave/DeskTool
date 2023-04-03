@@ -190,28 +190,17 @@ function Get-DTSEndpointPokerGetTable {
 
             # Get properties from input args
             $PokerBasePath = $($inputArgs["PokerBasePath"])
-            Write-PodeLog -Name "log" -InputObject @{ Message="Requested table name ""$PokerTableName"""; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
+            Write-PodeLog -Name "log" -InputObject @{ Message="Requested table with name ""$PokerTableName"" and id ""$PokerTableId"""; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
             
-            # Initialize json variable which we will return
-            $_poker_table = $null
+            # Get poker table
+            $_poker_table = Get-DTSEndpointHelperPokerGetTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -Full
 
-            # Prefer to get the table by the id
-            if(-Not [string]::IsNullOrEmpty($PokerTableId)) {
-                Write-PodeLog -Name "log" -InputObject @{ Message="Get table by ID"; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
-                $_poker_table = Get-DTSEndpointHelperPokerGetTableById -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -Full
-
-            } elseif (-Not [string]::IsNullOrEmpty($PokerTableName)) {
-                Write-PodeLog -Name "log" -InputObject @{ Message="Get table by name"; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
-                $_poker_table = Get-DTSEndpointHelperPokerGetTableByName -PokerBasePath $PokerBasePath -PokerTableName $PokerTableName -Full
-            } {
-                $PokerTablePassword = $null
-                throw "Table ID (prefered) or name must be given"
-            }
-            
+            # Create the hash value form given password
             Write-PodeLog -Name "log" -InputObject @{ Message="Check poker table password"; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
             $_poker_table_password_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($PokerTablePassword)$($_poker_table.pokerTableSalt)")) -Algorithm SHA256).Hash
             $PokerTablePassword = $null
 
+            # Return the poker table
             if($_poker_table_password_hash -ne $($_poker_table.pokerTablePassword)) {
                 throw "Wrong table password given"
             } else {
@@ -223,9 +212,10 @@ function Get-DTSEndpointPokerGetTable {
         catch {
             Write-PodeLog -Name "log" -InputObject @{ Message="$($_.Exception.Message)"; Component="Get-DTSEndpointPokerGetTable"; Type="Error" }
             $_poker_table_obj = New-Object -Type psobject
-            $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to join an existing table" -Force
+            $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested table" -Force
             $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
             Write-PodeJsonResponse -Value ($_poker_table_obj | ConvertTo-Json)
         }
     } -ArgumentList @{"PokerBasePath" = $_poker_base_bath} 
 }
+
