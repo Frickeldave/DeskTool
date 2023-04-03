@@ -72,7 +72,9 @@ function Start-DTS {
 			Write-DTCLog "Initialize endpoints" -Component "Module"
 			Initialize-DTSEndpoints -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
 			
-			Get-DTSEndpointStatus 
+			Get-DTSEndpointStatus
+			Get-DTSEndpointPokerTableList
+			Get-DTSEndpointPokerCreateTable
 			Get-DTSEndpointPokerGetTable
 		}
 	}

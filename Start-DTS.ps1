@@ -12,6 +12,7 @@ Copy-Item -Path "$PSScriptRoot\DTS\DTS.psm1" -Destination "$_target_dir\DTS.psm1
 Copy-Item -Path "$PSScriptRoot\DTS\DTSConfig.ps1" -Destination "$_target_dir\DTSConfig.ps1" -Recurse -Force
 Copy-Item -Path "$PSScriptRoot\DTS\DTSConfig.json" -Destination "$_target_dir\DTSConfig.json" -Recurse -Force
 Copy-Item -Path "$PSScriptRoot\DTS\DTSEndpoints.ps1" -Destination "$_target_dir\DTSEndpoints.ps1" -Recurse -Force
+Copy-Item -Path "$PSScriptRoot\DTS\DTSEndpointsHelperPoker.ps1" -Destination "$_target_dir\DTSEndpointsHelperPoker.ps1" -Recurse -Force
 
 Copy-Item -Path "$PSScriptRoot\DTC\DTCConfig.ps1" -Destination "$_target_dir\DTCConfig.ps1" -Recurse -Force
 Copy-Item -Path "$PSScriptRoot\DTC\DTCHelper.ps1" -Destination "$_target_dir\DTCHelper.ps1" -Recurse -Force
