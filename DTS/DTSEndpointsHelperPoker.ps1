@@ -3,9 +3,8 @@ function Format-DTSEndpointHelperPokerTable {
 
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
         $PokerTable,
-        [switch]$Full
+        [string]$PokerTableSecret
     )
 
     # Do not anything when nothing is give
@@ -13,28 +12,37 @@ function Format-DTSEndpointHelperPokerTable {
         return $PokerTable
     }
 
+    return $_poker_table_obj
+
+    # Ignore outdates poker tables
     if($($PokerTable.pokerTableTimestamp) -lt (Get-Date).AddDays(-1)) {
         Write-PodeLog -Name "log" -InputObject @{Message="Poker table ""$($PokerTable.pokerTableName)"" outdated. Ignore it."; Component="Format-DTSEndpointHelperPokerTable"; Type="Info"}
     } else {
-        Write-PodeLog -Name "log" -InputObject @{ Message="Format data for table file ""$($PokerTable.pokerTableName)"""; Component="Format-DTSEndpointHelperPokerTable"; Type="Info" }
-        $_poker_table_obj = New-Object -Type psobject
-        $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableId" -Value $PokerTable.pokerTableId -Force
-        $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableName" -Value $PokerTable.pokerTableName -Force
-        $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableTimestamp" -Value $PokerTable.pokerTableTimestamp -Force
-        if($Full) {
-            Write-PodeLog -Name "log" -InputObject @{ Message="Return full object"; Component="Format-DTSEndpointHelperPokerTable"; Type="Info" }
-            $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableSecret" -Value $PokerTable.pokerTableSecret -Force
-            $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableSalt" -Value $PokerTable.pokerTableSalt -Force
+        # Check poker table authentication
+        Write-PodeLog -Name "log" -InputObject @{ Message="Try to authenticate against the poker table"; Component="Format-DTSEndpointHelperPokerTable"; Type="Info" }
+        if(Grant-DTSEndpointPokerTableAccess -PokerTable $PokerTable) {
+            # Authenticated, return full object (without secrets)
+            $_poker_table_obj = $PokerTable
+            $_poker_table_obj.PSObject.Properties.Remove("pokerTableSalt") 
+            $_poker_table_obj.PSObject.Properties.Remove("pokerTableSecret") 
+        } else {
+            # Not authenticated, create the minimal object
+            $_poker_table_obj = New-Object -Type psobject
+            $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableId" -Value $_poker_table_obj.pokerTableId -Force
+            $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableName" -Value $_poker_table_obj.pokerTableName -Force
+            $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableTimestamp" -Value $_poker_table_obj.pokerTableTimestamp -Force
         }
+        
         return $_poker_table_obj
     }
 }
 function Get-DTSEndpointHelperPokerTableList {
+
     [CmdletBinding()]
     param (
         [Parameter()]
         [string]$PokerBasePath,
-        [switch]$Full
+        [string]$PokerTableSecret
     )
 
     # Initialize array variable which we will return
@@ -42,8 +50,9 @@ function Get-DTSEndpointHelperPokerTableList {
 
     foreach($_poker_file in (Get-ChildItem -Path "$PokerBasePath" | Where-Object { $_.Name -like "*.json" } )) {
         try {
-            $_poker_table_obj=(Get-Content -Path "$PokerBasePath\$_poker_file" -Raw) | ConvertFrom-Json
-            $_return_obj_list += Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj -Full:$Full
+            $_poker_table_obj = (Get-Content -Path "$PokerBasePath\$_poker_file" -Raw) | ConvertFrom-Json
+            $_poker_table_obj = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj -PokerTableSecret $PokerTableSecret
+            
         } catch {
             Write-Output "$_.Exception.Message"
             Write-PodeLog -Name "log" -InputObject @{ Message="Failed to get data for table file $_poker_file"; Component="Get-DTSEndpointHelperPokerTableList"; Type="Info" }
@@ -58,8 +67,7 @@ function Get-DTSEndpointHelperPokerTable {
     param (
         [string]$PokerBasePath,
         [string]$PokerTableName,
-        [string]$PokerTableId,
-        [switch]$Full
+        [string]$PokerTableId
     )   
 
     $_poker_table = $null
@@ -71,8 +79,8 @@ function Get-DTSEndpointHelperPokerTable {
         foreach($_poker_file in (Get-ChildItem -Path "$PokerBasePath" | Where-Object { $_.Name -like "*.json" } )) {
             try {
                 if($_poker_file.Name -eq "$PokerTableId.json") {
-                    $_poker_table_obj=(Get-Content -Path "$PokerBasePath\$_poker_file" -Raw) | ConvertFrom-Json
-                    $_poker_table = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj -Full:$Full
+                    $_poker_table_obj = (Get-Content -Path "$PokerBasePath\$_poker_file" -Raw) | ConvertFrom-Json
+                    $_poker_table_obj = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj -PokerTableSecret $PokerTableSecret
                 }
             } catch {
                 Write-Output "$_.Exception.Message"
@@ -134,5 +142,6 @@ function Grant-DTSEndpointPokerTableAccess {
         Write-PodeLog -Name "log" -InputObject @{ Message="Secret OK"; Component="Grant-DTSEndpointPokerTableAccess"; Type="Info" }
         $_poker_table_authenticated = $true
     }
+
     return $_poker_table_authenticated
 }
