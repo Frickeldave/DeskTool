@@ -3,12 +3,7 @@ $PokerBasePath = "C:\ProgramData\Frickeldave\DTS\Endpoints\poker"
 
 . $PSScriptRoot\DTSEndpointsHelperPoker.ps1
 
-$_poker_table_list = Get-DTSEndpointHelperPokerGetTableList -PokerBasePath $PokerBasePath -Full
+foreach($_poker_file in (Get-ChildItem -Path "$PokerBasePath" | Where-Object { $_.Name -like "*.json" } )) {
+    echo "bla"
 
-$_poker_Table_name = "sprint01"
-
-foreach($_poker_table in $_poker_table_list) {
-    if($_poker_table.pokerTableName -eq $_poker_Table_name) {
-        echo $_poker_table.pokerTableId
-    }
 }
