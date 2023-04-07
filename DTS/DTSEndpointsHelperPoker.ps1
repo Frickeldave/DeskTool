@@ -31,6 +31,7 @@ function Format-DTSEndpointHelperPokerTable {
             $_poker_table_obj = $PokerTable
             $_poker_table_obj.PSObject.Properties.Remove("pokerTableSalt") 
             $_poker_table_obj.PSObject.Properties.Remove("pokerTableSecret") 
+            $_poker_table_obj.PSObject.Properties.Remove("pokerTableOwnerSecret") 
 
         # Not authenticated, create the minimal object
         } else {

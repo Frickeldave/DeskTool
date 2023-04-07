@@ -97,9 +97,10 @@ function Get-DTSEndpointPokerCreateTable {
             # Get URL based properties
             $PokerTableName = $WebEvent.Query['name']
             $PokerTableSecret = $WebEvent.Query['secret']
+            $PokerTableOwnerSecret = $WebEvent.Query['ownersecret']
             $_poker_table_secret_salt = $(-join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object {[char]$_}))
             $_poker_table_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($PokerTableSecret)$($_poker_table_secret_salt)")) -Algorithm SHA256).Hash
-            $PokerTableSecret = $null
+            $_poker_table_owner_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($PokerTableOwnerSecret)$($_poker_table_secret_salt)")) -Algorithm SHA256).Hash
             $_poker_table_guid = [guid]::NewGuid().ToString()
 
             Write-PodeLog -Name "log" -InputObject @{ Message="Requested table name ""$PokerTableName"""; Component="Get-DTSEndpointPokerCreateTable"; Type="Info" }
@@ -127,8 +128,10 @@ function Get-DTSEndpointPokerCreateTable {
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableId" -Value $_poker_table_guid -Force
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableName" -Value $PokerTableName -Force
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableSecret" -Value $_poker_table_secret_hash -Force
+                $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableOwnerSecret" -Value $_poker_table_owner_secret_hash -Force
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableSalt" -Value $_poker_table_secret_salt -Force
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableTimestamp" -Value $_poker_table_creation_timestamp -Force
+                $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableEstmationMethod" -Value "fibonacci_classic"-Force
 
                 # Convert to json and save to file
                 Write-PodeLog -Name "log" -InputObject @{ Message="Save file"; Component="Get-DTSEndpointPokerCreateTable"; Type="Info" }
@@ -140,7 +143,7 @@ function Get-DTSEndpointPokerCreateTable {
             }
 
             # return the json file to requester
-            $_poker_table_obj = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj
+            $_poker_table_obj = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj -PokerTableSecret $PokerTableSecret
             Write-PodeJsonResponse -Value $_poker_table_obj
         }
         catch {
