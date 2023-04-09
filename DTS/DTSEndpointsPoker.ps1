@@ -1,37 +1,34 @@
-$script:_endpoint_config_base_path = $null
-$script:_endpoint_config_folder = $null
-$script:_endpoint_folder = $null
-$script:_poker_base_bath = $null
-
-function Initialize-DTSEndpoints {
-    [CmdletBinding()]
+[CmdletBinding()]
     param (
         [string]$ConfigBasePath,
         [string]$ConfigFolder,
         [string]$EndpointFolder
     )
 
-    Write-DTCLog "Initialize endpoint configuration" -Component "Initialize-DTSEndpoints"
-    
-    $script:_endpoint_config_base_path = $ConfigBasePath
-    $script:_endpoint_config_folder = $ConfigFolder
-    $script:_endpoint_folder = $EndpointFolder
+Write-DTCLog "Initialize poker endpoint configuration" -Component "DTSEndpointsPoker"
+$script:_endpoint_config_base_path = $null
+$script:_endpoint_config_folder = $null
+$script:_endpoint_folder = $null
+$script:_poker_base_bath = $null
 
-    Write-DTCLog "Create all needed directories" -Component "Initialize-DTSEndpoints"
-    if (-Not (Test-Path $ConfigBasePath\$ConfigFolder)) {
-        New-Item -Path $ConfigBasePath\$ConfigFolder -ItemType Directory | Out-Null
-    }
+$script:_endpoint_config_base_path = $ConfigBasePath
+$script:_endpoint_config_folder = $ConfigFolder
+$script:_endpoint_folder = $EndpointFolder
 
-    if (-Not (Test-Path $ConfigBasePath\$ConfigFolder\$EndpointFolder)) {
-        New-Item -Path $ConfigBasePath\$ConfigFolder\$EndpointFolder -ItemType Directory | Out-Null
-    }
-
-    $script:_poker_base_bath = "$script:_endpoint_config_base_path\$script:_endpoint_config_folder\$script:_endpoint_folder\poker"
-    if (-Not (Test-Path "$script:_poker_base_bath")) {
-        New-Item -Path "$script:_poker_base_bath" -ItemType Directory | Out-Null
-    }
-    Write-DTCLog "Initialized data path ""$script:_poker_base_bath""" -Component "Initialize-DTSEndpoints"
+Write-DTCLog "Create all needed directories for the poker endpoint" -Component "DTSEndpointsPoker"
+if (-Not (Test-Path $ConfigBasePath\$ConfigFolder)) {
+    New-Item -Path $ConfigBasePath\$ConfigFolder -ItemType Directory | Out-Null
 }
+
+if (-Not (Test-Path $ConfigBasePath\$ConfigFolder\$EndpointFolder)) {
+    New-Item -Path $ConfigBasePath\$ConfigFolder\$EndpointFolder -ItemType Directory | Out-Null
+}
+
+$script:_poker_base_bath = "$script:_endpoint_config_base_path\$script:_endpoint_config_folder\$script:_endpoint_folder\poker"
+if (-Not (Test-Path "$script:_poker_base_bath")) {
+    New-Item -Path "$script:_poker_base_bath" -ItemType Directory | Out-Null
+}
+Write-DTCLog "Initialized data path ""$script:_poker_base_bath""" -Component "DTSEndpointsPoker"
 
 function Get-DTSEndpointStatus {
 
@@ -57,14 +54,14 @@ function Get-DTSEndpointPokerTableList {
         try {
             Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/gettablelist"; Component="Get-DTSEndpointPokerTableList"; Type="Info"}
 
-            . $PSScriptRoot\DTSEndpointsHelperPoker.ps1
+            . $PSScriptRoot\DTSEndpointsPokerHelper.ps1
 
             # Get properties from input args
             $PokerBasePath = $($inputArgs["PokerBasePath"])
 
             # Call function to read all poker table files
             Write-PodeLog -Name "log" -InputObject @{Message="Load poker tables from file system"; Component="Get-DTSEndpointPokerTableList"; Type="Info"}
-            $_return_obj_list = Get-DTSEndpointHelperPokerTableList -PokerBasePath $PokerBasePath
+            $_return_obj_list = Get-DTSEndpointPokerHelperTableList -PokerBasePath $PokerBasePath
             Write-PodeLog -Name "log" -InputObject @{Message="Return data"; Component="Get-DTSEndpointPokerTableList"; Type="Info"}
             if($null -eq $_return_obj_list) {
                 $_return_obj_list = ""
@@ -92,7 +89,7 @@ function Get-DTSEndpointPokerCreateTable {
         try {
             Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/createtable"; Component="Get-DTSEndpointPokerCreateTable"; Type="Info"}
 
-            . $PSScriptRoot\DTSEndpointsHelperPoker.ps1
+            . $PSScriptRoot\DTSEndpointsPokerHelper.ps1
 
             # Get URL based properties
             $PokerTableName = $WebEvent.Query['name']
@@ -115,7 +112,7 @@ function Get-DTSEndpointPokerCreateTable {
             Write-PodeLog -Name "log" -InputObject @{Message="Check if poker table exist"; Component="Get-DTSEndpointPokerCreateTable"; Type="Info"}
             
             # Check if table already exist
-            $_poker_table_obj = (Get-DTSEndpointHelperPokerTable -PokerBasePath $PokerBasePath -PokerTableName $PokerTableName)
+            $_poker_table_obj = (Get-DTSEndpointPokerHelperTable -PokerBasePath $PokerBasePath -PokerTableName $PokerTableName)
 
             if($null -eq $_poker_table_obj -or "" -eq $_poker_table_obj) {
                 
@@ -131,7 +128,8 @@ function Get-DTSEndpointPokerCreateTable {
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableOwnerSecret" -Value $_poker_table_owner_secret_hash -Force
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableSalt" -Value $_poker_table_secret_salt -Force
                 $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableTimestamp" -Value $_poker_table_creation_timestamp -Force
-                $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableEstmationMethod" -Value "fibonacci_classic"-Force
+                $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableEstimationMethod" -Value "fibonacci_classic"-Force
+                $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "pokerTableParticipants" -Value $_poker_table_participants -Force
 
                 # Convert to json and save to file
                 Write-PodeLog -Name "log" -InputObject @{ Message="Save file"; Component="Get-DTSEndpointPokerCreateTable"; Type="Info" }
@@ -167,7 +165,7 @@ function Get-DTSEndpointPokerGetTable {
         try {
             Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/gettable"; Component="Get-DTSEndpointPokerGetTable"; Type="Info"}
 
-            . $PSScriptRoot\DTSEndpointsHelperPoker.ps1
+            . $PSScriptRoot\DTSEndpointsPokerHelper.ps1
 
             # Get URL based properties
             $PokerTableName = $WebEvent.Query['name']
@@ -179,14 +177,7 @@ function Get-DTSEndpointPokerGetTable {
             Write-PodeLog -Name "log" -InputObject @{ Message="Requested table with name ""$PokerTableName"" and id ""$PokerTableId"""; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
             
             # Get poker table
-            $_poker_table = Get-DTSEndpointHelperPokerTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -PokerTableSecret $PokerTableSecret
-            
-
-            # # Check if user has access to table
-            # if((Grant-DTSEndpointPokerTableAccess -PokerTable $_poker_table -PokerTableSecret $PokerTableSecret) -eq $false) {
-            #     throw "Give secret doesn't match with table secret" }
-                
-            # $_poker_table = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table
+            $_poker_table = Get-DTSEndpointPokerHelperTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -PokerTableSecret $PokerTableSecret
 
             # return table to user
             Write-PodeJsonResponse -Value ($_poker_table | ConvertTo-Json)
@@ -202,48 +193,65 @@ function Get-DTSEndpointPokerGetTable {
     } -ArgumentList @{"PokerBasePath" = $script:_poker_base_bath} 
 }
 
-function Get-DTSEndpointPokerJoinTable {
+function Join-DTSEndpointPokerTable {
 
-    Add-PodeRoute -Method Get -Path '/api/v1/dts/poker/jointable'-ScriptBlock {
+    Add-PodeRoute -Method Put -Path '/api/v1/dts/poker/jointable'-ScriptBlock {
 
         param (
 			$inputArgs
 		)
 
         try {
-            Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/jointable"; Component="Get-DTSEndpointPokerJoinTable"; Type="Info"}
+            Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/jointable"; Component="Join-DTSEndpointPokerTable"; Type="Info"}
 
-            Write-PodeLog -Name "log" -InputObject @{Message="Initialize helper functions"; Component="Get-DTSEndpointPokerJoinTable"; Type="Info"}
-            . $PSScriptRoot\DTSEndpointsHelperPoker.ps1
+            Write-PodeLog -Name "log" -InputObject @{Message="Initialize helper functions"; Component="Join-DTSEndpointPokerTable"; Type="Info"}
+            . $PSScriptRoot\DTSEndpointsPokerHelper.ps1
 
             # Get URL based properties
             $PokerTableName = $WebEvent.Query['name']
             $PokerTableId = $WebEvent.Query['id']
             $PokerTableSecret = $WebEvent.Query['secret']
+            $PokerTableParticipant = $WebEvent.Query['participant']
+            
+            if([string]::IsNullOrEmpty($PokerTableName) -and [string]::IsNullOrEmpty($PokerTableId)) {
+                throw "No poker table name or Id given"
+            }
+
+            if([string]::IsNullOrEmpty($PokerTableParticipant)) {
+                throw "No poker table participant given"
+            }
 
             # Get properties from input args
             $PokerBasePath = $($inputArgs["PokerBasePath"])
-            Write-PodeLog -Name "log" -InputObject @{ Message="Requested table with name ""$PokerTableName"" and id ""$PokerTableId"""; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
+            Write-PodeLog -Name "log" -InputObject @{ Message="Participant ""$PokerTableParticipant"" asked to join table with name ""$PokerTableName"" and id ""$PokerTableId"""; Component="Join-DTSEndpointPokerTable"; Type="Info" }
             
             # Get poker table
-            $_poker_table = Get-DTSEndpointHelperPokerTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -Full
+            $_poker_table_obj = Get-DTSEndpointPokerHelperTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -PokerTableSecret $PokerTableSecret
+            Write-PodeLog -Name "log" -InputObject @{Message="Found poker table with Id $($_poker_table_obj.pokerTableId)"; Component="Join-DTSEndpointPokerTable"; Type="Info"}
 
-            # Create the hash value form given secret
-            Write-PodeLog -Name "log" -InputObject @{ Message="Check poker table secret"; Component="Get-DTSEndpointPokerGetTable"; Type="Info" }
-            $_poker_table_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($PokerTableSecret)$($_poker_table.pokerTableSalt)")) -Algorithm SHA256).Hash
-            $PokerTableSecret = $null
-
-            # Return the poker table to requester
-            if($_poker_table_secret_hash -ne $($_poker_table.pokerTableSecret)) {
-                throw "Wrong table secret given"
-            } else {
-                $_poker_table.PSObject.Properties.Remove("pokerTableSalt") 
-                $_poker_table.PSObject.Properties.Remove("pokerTableSecret") 
-                Write-PodeJsonResponse -Value ($_poker_table | ConvertTo-Json)
+            if($null -eq $_poker_table_obj.pokerTableParticipants) {
+                Write-PodeLog -Name "log" -InputObject @{Message="No participants in object, initialize array"; Component="Join-DTSEndpointPokerTable"; Type="Info"}
+                $_poker_table_participants = @()
+                $_poker_table_obj.pokerTableParticipants = $_poker_table_participants
             }
+
+            # Add participant to poker table
+            if(-Not ($_poker_table_obj.pokerTableParticipants.Contains($PokerTableParticipant))) {
+                Write-PodeLog -Name "log" -InputObject @{Message="Participant ""$PokerTableParticipant"" not in list, add it"; Component="Join-DTSEndpointPokerTable"; Type="Info"}
+                $_poker_table_obj.pokerTableParticipants += $PokerTableParticipant
+            } else {
+                Write-PodeLog -Name "log" -InputObject @{Message="Participant ""$PokerTableParticipant"" is already in list"; Component="Join-DTSEndpointPokerTable"; Type="Info"}
+            }
+
+            # Save poker table to filesystem
+            Write-PodeLog -Name "log" -InputObject @{Message="Save table to file"; Component="Join-DTSEndpointPokerTable"; Type="Info"}
+            Save-DTSEndpointHelperPokerTable -PokerBasePath $PokerBasePath -PokerTable $_poker_table_obj
+
+            # return table to user
+            Write-PodeJsonResponse -Value ($_poker_table_obj | ConvertTo-Json)
         }
         catch {
-            Write-PodeLog -Name "log" -InputObject @{ Message="$($_.Exception.Message)"; Component="Get-DTSEndpointPokerGetTable"; Type="Error" }
+            Write-PodeLog -Name "log" -InputObject @{ Message="$($_.Exception.Message)"; Component="Join-DTSEndpointPokerTable"; Type="Error" }
             $_poker_table_obj = New-Object -Type psobject
             $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested table" -Force
             $_poker_table_obj | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force

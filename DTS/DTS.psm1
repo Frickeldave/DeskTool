@@ -12,9 +12,6 @@ function Start-DTS {
 	# DT common config
 	. $PSScriptRoot\DTCConfig.ps1
 
-	# DTS endoints
-	. $PSScriptRoot\DTSEndpoints.ps1
-
 	# Set all static variables
 	$_dts_pode_version = "2.8.0"
 	$_dts_base_path_app = "$env:ProgramData\Frickeldave"
@@ -32,6 +29,10 @@ function Start-DTS {
 	if((Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogrefresh") -eq $true) {
 		Write-DTCLog "Logfile refreshed" -Component "Module" -RefreshLogFile
 	}
+
+	# Intialize the endpoints
+	. $PSScriptRoot\DTSEndpointsPoker.ps1 -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
+	. $PSScriptRoot\DTSEndpointsUser.ps1 -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
 
 	# Get the webservice port from config file
 	$_dts_podeweb_port = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtsserverport")
@@ -69,13 +70,11 @@ function Start-DTS {
 				return $item
 			}
 
-			Write-DTCLog "Initialize endpoints" -Component "Module"
-			Initialize-DTSEndpoints -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
-			
 			Get-DTSEndpointStatus
 			Get-DTSEndpointPokerTableList
 			Get-DTSEndpointPokerCreateTable
 			Get-DTSEndpointPokerGetTable
+			Join-DTSEndpointPokerTable
 		}
 	}
 	catch {
