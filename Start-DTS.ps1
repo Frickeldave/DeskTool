@@ -14,6 +14,9 @@ try {
     $_target_dir = "$env:ProgramData\Frickeldave\DTS"
     
     if($Test) {
+
+        Import-SDTModule -ModuleName "PSScriptAnalyzer" -ModuleVersion "1.21.0"
+
         $_target_dir = "$env:ProgramData\Frickeldave\DTS-Pester"
         if(Test-Path $env:ProgramData\Frickeldave\DTS-Pester) {
             Remove-Item $env:ProgramData\Frickeldave\DTS-Pester -Recurse
@@ -24,19 +27,19 @@ try {
         New-Item -Path $_target_dir -ItemType Directory | Out-Null
     }
 
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTS.psd1" -TargetFile "$_target_dir\DTS.psd1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTS.psm1" -TargetFile "$_target_dir\DTS.psm1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTSConfig.ps1" -TargetFile "$_target_dir\DTSConfig.ps1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTSConfig.json" -TargetFile "$_target_dir\DTSConfig.json" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTSEndpointsCommon.ps1" -TargetFile "$_target_dir\DTSEndpointsCommon.ps1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTSEndpointsPoker.ps1" -TargetFile "$_target_dir\DTSEndpointsPoker.ps1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTSEndpointsPokerHelper.ps1" -TargetFile "$_target_dir\DTSEndpointsPokerHelper.ps1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTSEndpointsUser.ps1" -TargetFile "$_target_dir\DTSEndpointsUser.ps1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTS\DTSEndpointsUserHelper.ps1" -TargetFile "$_target_dir\DTSEndpointsUserHelper.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTS.psd1" -TargetFile "$_target_dir\DTS.psd1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTS.psm1" -TargetFile "$_target_dir\DTS.psm1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSConfig.ps1" -TargetFile "$_target_dir\DTSConfig.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSConfig.json" -TargetFile "$_target_dir\DTSConfig.json" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsCommon.ps1" -TargetFile "$_target_dir\DTSEndpointsCommon.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsPoker.ps1" -TargetFile "$_target_dir\DTSEndpointsPoker.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsPokerHelper.ps1" -TargetFile "$_target_dir\DTSEndpointsPokerHelper.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsUser.ps1" -TargetFile "$_target_dir\DTSEndpointsUser.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsUserHelper.ps1" -TargetFile "$_target_dir\DTSEndpointsUserHelper.ps1" -Test:$Test
 
-    Install-DTS -SourceFile "$PSScriptRoot\DTC\DTCConfig.ps1" -TargetFile "$_target_dir\DTCConfig.ps1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTC\DTCHelper.ps1" -TargetFile "$_target_dir\DTCHelper.ps1" -Test:$Test
-    Install-DTS -SourceFile "$PSScriptRoot\DTC\DTCLog.ps1" -TargetFile "$_target_dir\DTCLog.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTC\DTCConfig.ps1" -TargetFile "$_target_dir\DTCConfig.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTC\DTCHelper.ps1" -TargetFile "$_target_dir\DTCHelper.ps1" -Test:$Test
+    Install-DTFile -SourceFile "$PSScriptRoot\DTC\DTCLog.ps1" -TargetFile "$_target_dir\DTCLog.ps1" -Test:$Test
    
     $_api_job = Start-Job -ScriptBlock {
 
@@ -69,9 +72,10 @@ try {
         }
         while ($($_api_status.status) -ne "OK")
 
-        if(-Not (Get-Module Pester | Where-Object { $_.Version -eq "5.4.1" })) {
-            throw "Cannot execute pester tests. Please import pester version 5.4.1."
-        }
+        Import-SDTModule -ModuleName "Pester" -ModuleVersion "5.4.1"
+        # if(-Not (Get-Module Pester | Where-Object { $_.Version -eq "5.4.1" })) {
+        #     throw "Cannot execute pester tests. Please import pester version 5.4.1."
+        # }
         Invoke-Pester $PSScriptRoot\DTS\DTSEndpointsCommon.Tests.ps1
         Invoke-Pester $PSScriptRoot\DTS\DTSEndpointsPoker.Tests.ps1
         $_api_job.StopJob()
