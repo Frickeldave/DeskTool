@@ -74,11 +74,12 @@ function Initialize-DTS {
 				return $item
 			}
 
-			Get-DTSEndpointCommonStatus
+			Get-DTSStatus
 			Get-DTSEndpointPokerTableList
 			Add-DTSEndpointPokerTable
 			Get-DTSEndpointPokerGetTable
 			Join-DTSEndpointPokerTable
+			Add-User
 		}
 	}
 	catch {

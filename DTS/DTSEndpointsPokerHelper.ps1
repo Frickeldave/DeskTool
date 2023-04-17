@@ -47,44 +47,7 @@ function Format-DTSEndpointHelperPokerTable {
 
 }
 
-function Get-DTSEndpointPokerHelperTableList {
 
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]$PokerBasePath,
-        [string]$PokerTableSecret,
-        [string]$PokerTableName
-    )
-
-    # Initialize array variable which we will return
-    $_return_obj_list = @()
-
-    foreach($_poker_file in (Get-ChildItem -Path "$PokerBasePath" | Where-Object { $_.Name -like "*.json" } )) {
-        Write-PodeLog -Name "log" -InputObject @{ Message="Found file ""$($_poker_file.Name)"""; Component="Get-DTSEndpointPokerHelperTableList"; Type="Info" }
-        try {
-            $_poker_table_obj = (Get-Content -Path "$PokerBasePath\$($_poker_file.Name)" -Raw) | ConvertFrom-Json
-
-            if(-not ([string]::IsNullOrEmpty($PokerTableName))) {
-                Write-PodeLog -Name "log" -InputObject @{ Message="Filter with ""$PokerTableName"" on poker table name ""$($_poker_table_obj.pokerTableName)"""; Component="Get-DTSEndpointPokerHelperTableList"; Type="Info" }
-                if($($_poker_table_obj.pokerTableName) -eq $PokerTableName) {
-                    $_poker_table_obj = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj -PokerTableSecret $PokerTableSecret
-                    $_return_obj_list += $_poker_table_obj
-                    break;
-                }
-            } else {
-                $_poker_table_obj = Format-DTSEndpointHelperPokerTable -PokerTable $_poker_table_obj -PokerTableSecret $PokerTableSecret
-                $_return_obj_list += $_poker_table_obj
-            }
-
-        } catch {
-            Write-Output "$_.Exception.Message"
-            Write-PodeLog -Name "log" -InputObject @{ Message="Failed to get data for table file $_poker_file"; Component="Get-DTSEndpointPokerHelperTableList"; Type="Info" }
-        }
-    }
-
-    return $_return_obj_list
-}
 
 function Get-DTSEndpointPokerHelperTable {
     [CmdletBinding()]
@@ -117,8 +80,8 @@ function Get-DTSEndpointPokerHelperTable {
 
     # Get the table by its name
     } elseif (-Not [string]::IsNullOrEmpty($PokerTableName)) {
-        Write-PodeLog -Name "log" -InputObject @{Message="Execute Get-DTSEndpointPokerHelperTableList to get table by name"; Component="Get-DTSEndpointPokerHelperTable"; Type="Info"}
-        $_poker_table_list = Get-DTSEndpointPokerHelperTableList -PokerBasePath $PokerBasePath -PokerTableSecret $PokerTableSecret -PokerTableName $PokerTableName
+        Write-PodeLog -Name "log" -InputObject @{Message="Execute Get-DTSPokerTableList to get table by name"; Component="Get-DTSEndpointPokerHelperTable"; Type="Info"}
+        $_poker_table_list = Get-DTSPokerTableList -PokerBasePath $PokerBasePath -PokerTableSecret $PokerTableSecret -PokerTableName $PokerTableName
 
         foreach($_table in $_poker_table_list) {
             if($_table.pokerTableName -eq $PokerTableName) {

@@ -30,7 +30,7 @@ if (-Not (Test-Path "$script:_poker_base_bath")) {
 }
 Write-DTCLog "Initialized data path ""$script:_poker_base_bath""" -Component "DTSEndpointsPoker"
 
-function Get-DTSEndpointPokerTableList {
+function Get-DTSPokerTableList {
 
     Add-PodeRoute -Method Get -Path '/api/v1/dts/poker/gettablelist'-ScriptBlock {
 
@@ -39,24 +39,22 @@ function Get-DTSEndpointPokerTableList {
 		)
 
         try {
-            Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/gettablelist"; Component="Get-DTSEndpointPokerTableList"; Type="Info"}
-
-            . $PSScriptRoot\DTSEndpointsPokerHelper.ps1
+            Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/poker/gettablelist"; Component="Get-DTSPokerTableList"; Type="Info"}
 
             # Get properties from input args
             $PokerBasePath = $($inputArgs["PokerBasePath"])
 
             # Call function to read all poker table files
-            Write-PodeLog -Name "log" -InputObject @{Message="Load poker tables from file system"; Component="Get-DTSEndpointPokerTableList"; Type="Info"}
+            Write-PodeLog -Name "log" -InputObject @{Message="Load poker tables from file system"; Component="Get-DTSPokerTableList"; Type="Info"}
             $_return_obj_list = Get-DTSEndpointPokerHelperTableList -PokerBasePath $PokerBasePath
-            Write-PodeLog -Name "log" -InputObject @{Message="Return data"; Component="Get-DTSEndpointPokerTableList"; Type="Info"}
+            Write-PodeLog -Name "log" -InputObject @{Message="Return data"; Component="Get-DTSPokerTableList"; Type="Info"}
             if($null -eq $_return_obj_list) {
                 $_return_obj_list = ""
             }
             Write-PodeJsonResponse -Value ($_return_obj_list | ConvertTo-Json)
         }
         catch {
-            Write-PodeLog -Name "log" -InputObject @{ Message="$($_.Exception.Message)"; Component="Get-DTSEndpointPokerTableList"; Type="Error" }
+            Write-PodeLog -Name "log" -InputObject @{ Message="$($_.Exception.Message)"; Component="Get-DTSPokerTableList"; Type="Error" }
             $_poker_table_list_obj = New-Object -Type psobject
             $_poker_table_list_obj | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get poker tables" -Force
             $_poker_table_list_obj | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
@@ -245,3 +243,42 @@ function Join-DTSEndpointPokerTable {
     } -ArgumentList @{"PokerBasePath" = $script:_poker_base_bath}
 }
 
+
+function Get-DTSPokerTableList {
+
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]$PokerBasePath,
+        [string]$PokerTableSecret,
+        [string]$PokerTableName
+    )
+
+    # Initialize array variable which we will return
+    $_return_obj_list = @()
+
+    foreach($_poker_file in (Get-ChildItem -Path "$PokerBasePath" | Where-Object { $_.Name -like "*.json" } )) {
+        Write-PodeLog -Name "log" -InputObject @{ Message="Found file ""$($_poker_file.Name)"""; Component="Get-DTSPokerTableList"; Type="Info" }
+        try {
+            $_poker_table_obj = (Get-Content -Path "$PokerBasePath\$($_poker_file.Name)" -Raw) | ConvertFrom-Json
+
+            if(-not ([string]::IsNullOrEmpty($PokerTableName))) {
+                Write-PodeLog -Name "log" -InputObject @{ Message="Filter with ""$PokerTableName"" on poker table name ""$($_poker_table_obj.pokerTableName)"""; Component="Get-DTSPokerTableList"; Type="Info" }
+                if($($_poker_table_obj.pokerTableName) -eq $PokerTableName) {
+                    $_poker_table_obj = Format-DTSPokerTable -PokerTable $_poker_table_obj -PokerTableSecret $PokerTableSecret
+                    $_return_obj_list += $_poker_table_obj
+                    break;
+                }
+            } else {
+                $_poker_table_obj = Format-DTSPokerTable -PokerTable $_poker_table_obj -PokerTableSecret $PokerTableSecret
+                $_return_obj_list += $_poker_table_obj
+            }
+
+        } catch {
+            Write-Output "$_.Exception.Message"
+            Write-PodeLog -Name "log" -InputObject @{ Message="Failed to get data for table file $_poker_file"; Component="Get-DTSPokerTableList"; Type="Info" }
+        }
+    }
+
+    return $_return_obj_list
+}

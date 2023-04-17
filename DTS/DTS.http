@@ -25,3 +25,8 @@ GET http://localhost:8082/api/v1/dts/poker/gettable?id=0b750e8d-517c-44f0-9381-d
 
 ###
 PUT http://localhost:8082/api/v1/dts/poker/jointable?name=sprint01&secret=ThatsMyPassword1&participant=user4 HTTP/1.1
+
+
+###
+
+POST http://localhost:8082/api/v1/dts/user/adduser?name=user01&secret=ThatsMyPassword1 HTTP/1.1
