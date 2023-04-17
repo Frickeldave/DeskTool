@@ -1,7 +1,7 @@
 function Get-DTSEndpointCommonStatus {
 
     Add-PodeRoute -Method Get -Path '/api/v1/dts/status' -ScriptBlock {
-		
+
         Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/status"; Component="Get-DTSEndpointStatus"; Type="Info"}
 
         $_return = New-Object -Type psobject

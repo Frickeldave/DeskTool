@@ -31,13 +31,13 @@ function Get-DTSConfigValue {
     {
         "common/dtslogdir" { if ([string]::IsNullOrEmpty($_dts_config.common.dtslogdir)) { $_dtc_ret="" } else { $_dtc_ret=$_dts_config.common.dtslogdir } }
         "common/dtslogfile" { if ([string]::IsNullOrEmpty($_dts_config.common.dtslogfile)) { $_dtc_ret="default.log" } else { $_dtc_ret=$_dts_config.common.dtslogfile } }
-        
-        "common/dtslogtarget" { 
-            if ([string]::IsNullOrEmpty($_dts_config.common.dtslogtarget)) { 
+
+        "common/dtslogtarget" {
+            if ([string]::IsNullOrEmpty($_dts_config.common.dtslogtarget)) {
                 $_dtc_ret="File"
             } else {
-                $_dtc_ret=$_dts_config.common.dtslogtarget 
-            } 
+                $_dtc_ret=$_dts_config.common.dtslogtarget
+            }
         }
         default { $_dtc_ret = Get-DTCConfigValue -ConfigBasePath $script:_config_base_path -ConfigFolder $script:_config_folder -ConfigFile $script:_config_file -ConfigGroup $ConfigGroup -ConfigName $ConfigName }
     }

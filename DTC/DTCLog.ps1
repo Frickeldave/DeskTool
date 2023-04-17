@@ -39,17 +39,17 @@ function Write-DTCLog {
         [ValidateSet("Error", "Warning", "Info")]
         [string]$Type="Info"
     )
-   
+
     $_datetime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    
+
     $_type = "I"
     if($Type -eq "Warning" ) { $_type = "W" }
     if($Type -eq "Error" ) { $_type = "E" }
-    
+
     $_message="$_datetime $_type $Component - $Message"
 
     if($script:_dts_log_target -eq "File") {
-        
+
         if($null -eq $script:_dts_log_file_dir -and $IsLinux) {
             $_logdir = "/tmp"
         }
@@ -66,10 +66,10 @@ function Write-DTCLog {
         }
 
         # Test if file is acccessable
-        try { 
-            [io.file]::OpenWrite("$($_logdir)/$($_logfile)").close() 
-        } catch { 
-            Write-Error "Unable to write to output file $($_logdir)/$($_logfile)" 
+        try {
+            [io.file]::OpenWrite("$($_logdir)/$($_logfile)").close()
+        } catch {
+            Write-Error "Unable to write to output file $($_logdir)/$($_logfile)"
         }
         if($RefreshLogFile) {
             $_message | Out-File -Encoding UTF8 -FilePath "$($_logdir)/$($_logfile)"

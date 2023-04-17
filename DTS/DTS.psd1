@@ -8,7 +8,7 @@
     CompanyName = 'Frickeldave'
     Copyright = '(c) David Koenig. All rights reserved.'
     Description = 'DeskTool Server is the backend for the client tool DeskTool'
-    FunctionsToExport = 'Start-DTS'
+    FunctionsToExport = 'Initialize-DTS'
     CmdletsToExport = ''
     VariablesToExport = ''
     AliasesToExport = ''

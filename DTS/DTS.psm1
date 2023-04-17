@@ -1,8 +1,13 @@
-function Start-DTS {
+function Initialize-DTS {
+
+	[CmdletBinding()]
+	param (
+		[string]$BasePathApp = "$($env:ProgramData)\Frickeldave"
+	)
 
 	# Import the logging functions
 	. $PSScriptRoot\DTCLog.ps1
-	
+
 	# DTC CommonHelper
 	. $PSScriptRoot\DTCHelper.ps1
 
@@ -14,16 +19,14 @@ function Start-DTS {
 
 	# Set all static variables
 	$_dts_pode_version = "2.8.0"
-	$_dts_base_path_app = "$env:ProgramData\Frickeldave"
-	$_dts_base_path_user = "$env:ProgramData\Frickeldave"
 	$_dts_config_file = "DTSConfig.json"
 	$_dts_app_name = "Desktool server"
 
 	# Initialize the configuration
-	Initialize-DTSConfig -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -ConfigFile $_dts_config_file
+	Initialize-DTSConfig -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -ConfigFile $_dts_config_file
 
 	# Initialize the logging which prevents to send logfile infos with every "Write-DTCLog" command
-	Initialize-DTCLog -LogBasePath $_dts_base_path_app -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
+	Initialize-DTCLog -LogBasePath $BasePathApp -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
 
 	# Refresh logfile
 	if((Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogrefresh") -eq $true) {
@@ -31,8 +34,9 @@ function Start-DTS {
 	}
 
 	# Intialize the endpoints
-	. $PSScriptRoot\DTSEndpointsPoker.ps1 -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
-	. $PSScriptRoot\DTSEndpointsUser.ps1 -ConfigBasePath $_dts_base_path_user -ConfigFolder "DTS" -EndpointFolder "Endpoints"
+	. $PSScriptRoot\DTSEndpointsCommon.ps1
+	. $PSScriptRoot\DTSEndpointsPoker.ps1 -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -EndpointFolder "Endpoints"
+	. $PSScriptRoot\DTSEndpointsUser.ps1 -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -EndpointFolder "Endpoints"
 
 	# Get the webservice port from config file
 	$_dts_podeweb_port = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtsserverport")
@@ -59,20 +63,20 @@ function Start-DTS {
 
 			New-PodeLoggingMethod -Custom -ScriptBlock {
 				param ( $item )
-				
+
 				#Initalize logging module with same parameters again, otherwise it's not available within the web session
 				. $PSScriptRoot\DTCLog.ps1
-				Initialize-DTCLog -LogBasePath $_dts_base_path_app -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
-				
+				Initialize-DTCLog -LogBasePath $BasePathApp -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
+
 				Write-DTCLog -Message $($item.Message) -Component $($item.Component) -Type $($item.Type)
 			} | Add-PodeLogger -Name "log" -ScriptBlock {
 				param ($item)
 				return $item
 			}
 
-			Get-DTSEndpointStatus
+			Get-DTSEndpointCommonStatus
 			Get-DTSEndpointPokerTableList
-			Get-DTSEndpointPokerCreateTable
+			Add-DTSEndpointPokerTable
 			Get-DTSEndpointPokerGetTable
 			Join-DTSEndpointPokerTable
 		}

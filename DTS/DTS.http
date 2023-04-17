@@ -8,20 +8,20 @@ GET http://localhost:8082/api/v1/dts/poker/gettablelist HTTP/1.1
 
 ###
 
-GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint01&secret=ThatsMyPassword1 HTTP/1.1
+POST http://localhost:8082/api/v1/dts/poker/addtable?name=sprint01&secret=ThatsMyPassword1 HTTP/1.1
 ###
-GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint02&secret=ThatsMyPassword2 HTTP/1.1
+POST http://localhost:8082/api/v1/dts/poker/addtable?name=sprint02&secret=ThatsMyPassword2 HTTP/1.1
 ###
-GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint03&secret=ThatsMyPassword3 HTTP/1.1
+POST http://localhost:8082/api/v1/dts/poker/addtable?name=sprint03&secret=ThatsMyPassword3 HTTP/1.1
 ###
-GET http://localhost:8082/api/v1/dts/poker/createtable?name=sprint04&secret=ThatsMyPassword4 HTTP/1.1
+POST http://localhost:8082/api/v1/dts/poker/addtable?name=sprint04&secret=ThatsMyPassword4 HTTP/1.1
 
 
 ###
 GET http://localhost:8082/api/v1/dts/poker/gettable?name=sprint01&secret=ThatsMyPassword1 HTTP/1.1
 
 ###
-GET http://localhost:8082/api/v1/dts/poker/gettable?id=8c566da9-a71c-47a4-bd20-a78cbf5f2f5d&secret=ThatsMyPassword1 HTTP/1.1
+GET http://localhost:8082/api/v1/dts/poker/gettable?id=0b750e8d-517c-44f0-9381-d08398945457&secret=ThatsMyPassword4 HTTP/1.1
 
 ###
-PUT http://localhost:8082/api/v1/dts/poker/jointable?name=sprint01&secret=ThatsMyPassword1&participant=user5 HTTP/1.1
+PUT http://localhost:8082/api/v1/dts/poker/jointable?name=sprint01&secret=ThatsMyPassword1&participant=user4 HTTP/1.1
