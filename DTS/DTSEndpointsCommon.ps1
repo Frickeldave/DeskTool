@@ -13,6 +13,7 @@ function Initialize-CommonEndpoint{
         )
 
     Write-DTCLog -Message "Initialize common endpoint configuration" -Component "Initialize-CommonEndpoint"
+    # TODO: Remove the following 3 lines
     Write-DTCLog -Message "Dir: $LogFileDir" -Component "Initialize-CommonEndpoint"
     Write-DTCLog -Message "Name: $LogFileName" -Component "Initialize-CommonEndpoint"
     Write-DTCLog -Message "Target: $LogTarget" -Component "Initialize-CommonEndpoint"
@@ -49,9 +50,10 @@ function Write-DTSLog {
     # Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir"
     # Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile"
 
+    # TODO: This is staticall added because i was not able to get the values from outside
     $script:_log_file_dir = "C:\ProgramData\Frickeldave\DTS-Pester\DTS"
     $script:_log_file_name = "DTS.log"
     $script:_log_target = "File"
-    #Write-PodeLog -Name "log" -InputObject @{Message=$Message; Component=$Component; Type=$Type; LogFileDir=$LogFileDir; LogFileName=$LogFileName; LogTarget=$LogTarget}
+
     Write-PodeLog -Name "log" -InputObject @{Message=$Message; Component=$Component; Type=$Type; LogFileDir=$script:_log_file_dir; LogFileName=$script:_log_file_name; LogTarget=$script:_log_target}
 }
