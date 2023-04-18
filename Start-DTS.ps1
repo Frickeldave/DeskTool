@@ -39,7 +39,6 @@ try {
     Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSConfig.json" -TargetFile "$_target_dir\DTSConfig.json" -Test:$Test
     Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsCommon.ps1" -TargetFile "$_target_dir\DTSEndpointsCommon.ps1" -Test:$Test
     Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsPoker.ps1" -TargetFile "$_target_dir\DTSEndpointsPoker.ps1" -Test:$Test
-    Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsPokerHelper.ps1" -TargetFile "$_target_dir\DTSEndpointsPokerHelper.ps1" -Test:$Test
     Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTSEndpointsUser.ps1" -TargetFile "$_target_dir\DTSEndpointsUser.ps1" -Test:$Test
 
     Install-DTFile -SourceFile "$PSScriptRoot\DTC\DTCConfig.ps1" -TargetFile "$_target_dir\DTCConfig.ps1" -Test:$Test
@@ -81,12 +80,12 @@ try {
 
         Invoke-Pester $PSScriptRoot\DTS\DTSEndpointsCommon.Tests.ps1
         Invoke-Pester $PSScriptRoot\DTS\DTSEndpointsPoker.Tests.ps1
-        Write-Host "Stop"
+        Invoke-Pester $PSScriptRoot\DTS\DTSEndpointsUser.Tests.ps1
         #$_api_job.StopJob()
     }
 
 }  catch {
     Write-Host "Exception in Start-DTS"
     "$($_.Exception.Message)" | Out-Host
-    $_api_job.StopJob()
+    ##$_api_job.StopJob()
 }

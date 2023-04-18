@@ -1,36 +1,70 @@
-[CmdletBinding()]
-    param (
-        [string]$ConfigBasePath,
-        [string]$ConfigFolder,
-        [string]$EndpointFolder
-    )
-
-Write-DTCLog "Initialize user endpoint configuration" -Component "DTSEndpointsUser"
-$script:_endpoint_config_base_path = $null
-$script:_endpoint_config_folder = $null
-$script:_endpoint_folder = $null
 $script:_user_base_bath = $null
 
-$script:_endpoint_config_base_path = $ConfigBasePath
-$script:_endpoint_config_folder = $ConfigFolder
-$script:_endpoint_folder = $EndpointFolder
+function Initialize-UserEndpoint{
 
-Write-DTCLog "Create all needed directories for the user endpoint" -Component "DTSEndpointsUser"
-if (-Not (Test-Path $ConfigBasePath\$ConfigFolder)) {
-    New-Item -Path $ConfigBasePath\$ConfigFolder -ItemType Directory | Out-Null
+    [CmdletBinding()]
+        param (
+            [string]$ConfigBasePath,
+            [string]$ConfigFolder,
+            [string]$EndpointFolder
+        )
+
+    Write-DTCLog -Message "Initialize user endpoint configuration" -Component "Initialize-UserEndpoint"
+    $script:_user_base_bath = "$ConfigBasePath\$ConfigFolder\$EndpointFolder\user"
+
+    Write-DTCLog -Message "Create all needed directories for the user endpoint" -Component "Initialize-UserEndpoint"
+    if (-Not (Test-Path $ConfigBasePath\$ConfigFolder)) {
+        New-Item -Path $ConfigBasePath\$ConfigFolder -ItemType Directory | Out-Null
+    }
+
+    if (-Not (Test-Path $ConfigBasePath\$ConfigFolder\$EndpointFolder)) {
+        New-Item -Path $ConfigBasePath\$ConfigFolder\$EndpointFolder -ItemType Directory | Out-Null
+    }
+
+    if (-Not (Test-Path "$script:_user_base_bath")) {
+        New-Item -Path "$script:_user_base_bath" -ItemType Directory | Out-Null
+    }
+    Write-DTCLog -Message "Initialized data path ""$script:_user_base_bath""" -Component "Initialize-UserEndpoint"
 }
 
-if (-Not (Test-Path $ConfigBasePath\$ConfigFolder\$EndpointFolder)) {
-    New-Item -Path $ConfigBasePath\$ConfigFolder\$EndpointFolder -ItemType Directory | Out-Null
+function Get-DTSUserListApi {
+
+    Add-PodeRoute -Method Get -Path '/api/v1/dts/user/getuserlist'-ScriptBlock {
+
+        param (
+			$inputArgs
+		)
+
+        try {
+            # Load functions
+            . $PSScriptRoot\DTSEndpointsCommon.ps1
+            . $PSScriptRoot\DTSEndpointsUser.ps1
+
+            # Get properties from input args
+            $UserBasePath = $($inputArgs["UserBasePath"])
+
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/getuserlist" -Component "Get-DTSUserListApi" -Type "Info"
+
+            # Call function to read all user files
+            Write-DTSLog -Message "Load users from file system" -Component "Get-DTSUserListApi" -Type "Info"
+            $_return_obj_list = Get-DTSUserList -UserBasePath $UserBasePath
+            Write-DTSLog -Message "Return data" -Component "Get-DTSUserListApi" -Type "Info"
+            if($null -eq $_return_obj_list) {
+                $_return_obj_list = ""
+            }
+            Write-PodeJsonResponse -Value ($_return_obj_list | ConvertTo-Json)
+        }
+        catch {
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Get-DTSUserListApi" -Type "Error"
+            $_user_list_obj = New-Object -Type psobject
+            $_user_list_obj | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get users" -Force
+            $_user_list_obj | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+            Write-PodeJsonResponse -Value ($_user_list_obj | ConvertTo-Json)
+        }
+    } -ArgumentList @{"UserBasePath" = $script:_user_base_bath}
 }
 
-$script:_user_base_bath = "$script:_endpoint_config_base_path\$script:_endpoint_config_folder\$script:_endpoint_folder\user"
-if (-Not (Test-Path "$script:_user_base_bath")) {
-    New-Item -Path "$script:_user_base_bath" -ItemType Directory | Out-Null
-}
-Write-DTCLog "Initialized data path ""$script:_user_base_bath""" -Component "DTSEndpointsUser"
-
-function Add-DTSUser {
+function Add-DTSUserApi {
 
     Add-PodeRoute -Method Post -Path '/api/v1/dts/user/adduser'-ScriptBlock {
 
@@ -39,7 +73,15 @@ function Add-DTSUser {
 		)
 
         try {
-            Write-PodeLog -Name "log" -InputObject @{Message="Got incoming request on path /api/v1/dts/user/adduser"; Component="Add-DTSUser"; Type="Info"}
+
+            # Load functions
+            . $PSScriptRoot\DTSEndpointsCommon.ps1
+            . $PSScriptRoot\DTSEndpointsUser.ps1
+
+            # Get properties from input args
+            $UserBasePath = $($inputArgs["UserBasePath"])
+
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/adduser" -Component "Add-DTSUserApi" -Type "Info"
 
             # Get URL based properties
             $UserName = $WebEvent.Query['name']
@@ -49,22 +91,19 @@ function Add-DTSUser {
             $UserSecret = $null
             $_user_guid = [guid]::NewGuid().ToString()
 
-            Write-PodeLog -Name "log" -InputObject @{ Message="Requested to create user with name ""$UserName"" and id ""$_user_guid"""; Component="Add-DTSUser"; Type="Info" }
-
-            # Get properties from input args
-            $UserBasePath = $($inputArgs["UserBasePath"])
+            Write-DTSLog -Message "Requested to create user with name ""$UserName"" and id ""$_user_guid""" -Component "Add-DTSUserApi" -Type "Info"
 
             # Initialize json variable which we will return
             $_user_json=$null
 
             # Call function to read all user files
-            Write-PodeLog -Name "log" -InputObject @{Message="Check if user exist"; Component="Add-DTSUser"; Type="Info"}
+            Write-DTSLog -Message "Check if user exist" -Component "Add-DTSUserApi" -Type "Info"
             $_user_obj = (Get-DTSUser -UserBasePath $UserBasePath -UserName $UserName)
 
             if($null -eq $_user_obj -or "" -eq $_user_obj) {
 
                 # Create a powershell object with new user
-                Write-PodeLog -Name "log" -InputObject @{ Message="User doesn't exist -> create new file"; Component="Add-DTSUser"; Type="Info" }
+                Write-DTSLog -Message "User doesn't exist -> create new file" -Component "Add-DTSUserApi" -Type "Info"
 
                 $_user_creation_timestamp = Get-Date -format "yyyy-MM-dd HH:MM"
 
@@ -76,24 +115,69 @@ function Add-DTSUser {
                 $_user_obj | Add-Member -MemberType NoteProperty -Name "userTimestamp" -Value $_user_creation_timestamp -Force
 
                 # Convert to json and save to file
-                Write-PodeLog -Name "log" -InputObject @{ Message="Save file"; Component="Add-DTSUser"; Type="Info" }
+                Write-DTSLog -Message "Save file" -Component "Add-DTSUserApi" -Type "Info"
                 $_user_json = ($_user_obj | ConvertTo-Json)
+
+                # TODO: Move this to a common-save-file method
                 $_user_json | Out-File -Append -Encoding UTF8 -FilePath "$UserBasePath\$_user_guid.json"
             } else {
                 # User already exist
-                Write-PodeLog -Name "log" -InputObject @{ Message="User ""$UserName"" already exist"; Component="Add-DTSUser"; Type="Info" }
+                Write-DTSLog -Message "User ""$UserName"" already exist" -Component "Add-DTSUserApi" -Type "Info"
             }
 
-            # return the json file to requester
+            # format object
             $_user_obj = Format-DTSUser -User $_user_obj
         }
         catch {
-            Write-PodeLog -Name "log" -InputObject @{ Message="$($_.Exception.Message)"; Component="Add-DTSUser"; Type="Error" }
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Add-DTSUserApi" -Type "Error"
             $_user_obj = New-Object -Type psobject
             $_user_obj | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to create user" -Force
             $_user_obj | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
         } finally {
+            # return json to requester
             Write-PodeJsonResponse -Value ($_user_obj | ConvertTo-Json)
+        }
+    } -ArgumentList @{"UserBasePath" = $script:_user_base_bath}
+}
+
+function Get-DTSUserApi {
+
+    Add-PodeRoute -Method Get -Path '/api/v1/dts/user/getuser'-ScriptBlock {
+
+        param (
+			$inputArgs
+		)
+
+        $_user = $null
+
+        try {
+            # Load functions
+            . $PSScriptRoot\DTSEndpointsCommon.ps1
+            . $PSScriptRoot\DTSEndpointsUser.ps1
+
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/getuser" -Component "Get-DTSUserApi" -Type "Info"
+
+            # Get URL based properties
+            $UserName = $WebEvent.Query['name']
+            $UserId = $WebEvent.Query['id']
+
+            # Get properties from input args
+            $UserBasePath = $($inputArgs["UserBasePath"])
+
+            Write-DTSLog -Message "Requested user with name ""$UserName"" and id ""$UserId""" -Component="Get-DTSUserApi" -Type "Info"
+
+            # Get user
+            $_user = Get-DTSUser -UserBasePath $UserBasePath -UserId $UserId -UserName $UserName
+        }
+        catch {
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Get-DTSUserApi" -Type "Error"
+            $_user = New-Object -Type psobject
+            $_user | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested user" -Force
+            $_user | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+
+        } finally {
+            # return user to requester
+            Write-PodeJsonResponse -Value ($_user | ConvertTo-Json)
         }
     } -ArgumentList @{"UserBasePath" = $script:_user_base_bath}
 }
@@ -110,34 +194,26 @@ function Get-DTSUser {
 
     # Prefer to get the user by the id
     if(-Not [string]::IsNullOrEmpty($UserId)) {
-        Write-PodeLog -Name "log" -InputObject @{ Message="Get user by ID"; Component="Get-DTSUser"; Type="Info" }
+        Write-DTSLog -Message "Get user by ID" -Component "Get-DTSUser" -Type "Info"
 
         foreach($_user_file in (Get-ChildItem -Path "$UserBasePath" | Where-Object { $_.Name -like "*.json" } )) {
             try {
-
                 if($($_user_file.Name) -eq "$($UserId).json") {
-                    Write-PodeLog -Name "log" -InputObject @{ Message="Found file $($UserId).json with matching Id"; Component="Get-DTSUser"; Type="Info" }
+                    Write-DTSLog -Message "Found file $($UserId).json with matching Id" -Component "Get-DTSUser" -Type "Info"
                     $_user = (Get-Content -Path "$UserBasePath\$($_user_file.Name)" -Raw) | ConvertFrom-Json
                     $_user = Format-DTSUser -User $_user
                 }
             } catch {
                 Write-Output "$_.Exception.Message"
-                Write-PodeLog -Name "log" -InputObject @{ Message="Failed to get data for user file $_user_file"; Component="Get-DTSUser"; Type="Info" }
+                Write-DTSLog -Message "Failed to get data for user file $_user_file" -Component "Get-DTSUser" -Type "Info"
             }
         }
 
     # Get the user by its name
     } elseif (-Not [string]::IsNullOrEmpty($UserName)) {
-        Write-PodeLog -Name "log" -InputObject @{Message="Execute Get-DTSUserList to get user by name"; Component="Get-DTSUser"; Type="Info"}
-        $_user_list = Get-DTSUserList -UserBasePath $UserBasePath
+        Write-DTSLog -Message "Execute Get-DTSUserList to get user by name" -Component "Get-DTSUser" -Type "Info"
+        $_user = Get-DTSUserList -UserBasePath $UserBasePath -UserName $UserName
 
-        foreach($_user in $_user_list) {
-            if($_user.userName -eq $UserName) {
-                Write-PodeLog -Name "log" -InputObject @{Message="Found user with id $($_user.UserId)"; Component="Get-DTSUser"; Type="Info"}
-                $_user = Format-DTSUser -User $_user
-                break; # Get the first item and ignore all other results
-            }
-        }
     # Neither ID or username is given -> exit
     } else {
         throw "User ""Id"" (prefered) or ""name"" must be given"
@@ -145,10 +221,48 @@ function Get-DTSUser {
 
     # Report that no object was found
     if($null -eq $_user) {
-        Write-PodeLog -Name "log" -InputObject @{Message="No user found"; Component="Get-DTSUser"; Type="Info"}
+        Write-DTSLog -Message "No user found" -Component "Get-DTSUser" -Type "Info"
     }
 
     return $_user
+}
+
+function Get-DTSUserList {
+
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]$UserBasePath,
+        [string]$UserName
+    )
+
+    # Initialize array variable which we will return
+    $_return_obj_list = @()
+
+    foreach($_user_file in (Get-ChildItem -Path "$UserBasePath" | Where-Object { $_.Name -like "*.json" } )) {
+        Write-DTSLog -Message "Found file ""$($_user_file.Name)""" -Component "Get-DTSUserList" -Type "Info"
+        try {
+            $_user_obj = (Get-Content -Path "$UserBasePath\$($_user_file.Name)" -Raw) | ConvertFrom-Json
+
+            if(-not ([string]::IsNullOrEmpty($UserName))) {
+                Write-DTSLog -Message "Filter with ""$UserName"" on user name ""$($_user_obj.userName)""" -Component "Get-DTSUserList" -Type "Info"
+                if($($_user_obj.userName) -eq $UserName) {
+                    $_user_obj = Format-DTSUser -User $_user_obj
+                    $_return_obj_list += $_user_obj
+                    break;
+                }
+            } else {
+                $_user_obj = Format-DTSUser -User $_user_obj
+                $_return_obj_list += $_user_obj
+            }
+
+        } catch {
+            Write-Output "$_.Exception.Message"
+            Write-DTSLog -Message "Failed to get data for user file $_user_file" -Component "Get-DTSUserList" -Type "Info"
+        }
+    }
+
+    return $_return_obj_list
 }
 
 function Format-DTSUser {
@@ -163,7 +277,7 @@ function Format-DTSUser {
         return $User
     }
 
-    Write-PodeLog -Name "log" -InputObject @{ Message="Format user object"; Component="Format-DTSUser"; Type="Info" }
+    Write-DTSLog -Message "Format user object" -Component "Format-DTSUser" -Type "Info"
     $User.PSObject.Properties.Remove("userSalt")
     $User.PSObject.Properties.Remove("userSecret")
 

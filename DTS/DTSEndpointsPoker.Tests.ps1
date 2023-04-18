@@ -41,13 +41,20 @@ Describe 'Poker API methods' {
     It 'Get the first poker table by its Id' {
         $_api_poker_table_one = Invoke-RestMethod -Method Get -Uri "http://localhost:8082/api/v1/dts/poker/gettable?id=$($script:_api_poker_table_one_id)&secret=ThatsMyPassword4"
         $_api_poker_table_one.pokerTableId | Should -Be $_api_poker_table_one_id
+        $_api_poker_table_one.pokerTableName | Should -Be "sprint01"
+    }
+
+    It 'Get the first poker table by its Name' {
+        $_api_poker_table_one = Invoke-RestMethod -Method Get -Uri "http://localhost:8082/api/v1/dts/poker/gettable?name=sprint01&secret=ThatsMyPassword1"
+        $_api_poker_table_one.pokerTableId | Should -Be $_api_poker_table_one_id
+        $_api_poker_table_one.pokerTableName | Should -Be "sprint01"
     }
 
     It 'Join some user to table' {
         $_api_poker_table_one = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/jointable?name=sprint01&secret=ThatsMyPassword1&participant=user01"
         $_api_poker_table_one = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/jointable?name=sprint01&secret=ThatsMyPassword1&participant=user02"
-        $_api_poker_table_one = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/jointable?name=sprint01&secret=ThatsMyPassword1&participant=user03"
-        $_api_poker_table_one = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/jointable?name=sprint01&secret=ThatsMyPassword1&participant=user04"
+        $_api_poker_table_one = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/jointable?id=$($script:_api_poker_table_one_id)&secret=ThatsMyPassword1&participant=user03"
+        $_api_poker_table_one = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/jointable?id=$($script:_api_poker_table_one_id)&secret=ThatsMyPassword1&participant=user04"
         $_api_poker_table_one.pokerTableParticipants.Count | Should -Be 4
     }
 }

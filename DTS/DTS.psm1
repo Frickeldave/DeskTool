@@ -25,7 +25,7 @@ function Initialize-DTS {
 	# Initialize the configuration
 	Initialize-DTSConfig -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -ConfigFile $_dts_config_file
 
-	# Initialize the logging which prevents to send logfile infos with every "Write-DTCLog" command
+	# Initialize the logging
 	Initialize-DTCLog -LogBasePath $BasePathApp -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
 
 	# Refresh logfile
@@ -35,8 +35,11 @@ function Initialize-DTS {
 
 	# Intialize the endpoints
 	. $PSScriptRoot\DTSEndpointsCommon.ps1
-	. $PSScriptRoot\DTSEndpointsPoker.ps1 -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -EndpointFolder "Endpoints"
+	Initialize-CommonEndpoint -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
+	. $PSScriptRoot\DTSEndpointsPoker.ps1
+	Initialize-PokerEndpoint -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -EndpointFolder "Endpoints"
 	. $PSScriptRoot\DTSEndpointsUser.ps1 -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -EndpointFolder "Endpoints"
+	Initialize-UserEndpoint -ConfigBasePath $BasePathApp -ConfigFolder "DTS" -EndpointFolder "Endpoints"
 
 	# Get the webservice port from config file
 	$_dts_podeweb_port = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtsserverport")
@@ -66,20 +69,21 @@ function Initialize-DTS {
 
 				#Initalize logging module with same parameters again, otherwise it's not available within the web session
 				. $PSScriptRoot\DTCLog.ps1
-				Initialize-DTCLog -LogBasePath $BasePathApp -LogFolder "DTS" -LogFileDir $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir") -LogFileName $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile") -LogTarget $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogtarget")
-
+				Initialize-DTCLog -LogBasePath $($item.BasePath) -LogFolder "DTS" -LogFileDir $($item.LogFileDir) -LogFileName $($item.LogFileName) -LogTarget $($item.LogTarget)
 				Write-DTCLog -Message $($item.Message) -Component $($item.Component) -Type $($item.Type)
 			} | Add-PodeLogger -Name "log" -ScriptBlock {
 				param ($item)
 				return $item
 			}
 
-			Get-DTSStatus
-			Get-DTSEndpointPokerTableList
-			Add-DTSEndpointPokerTable
-			Get-DTSEndpointPokerGetTable
-			Join-DTSEndpointPokerTable
-			Add-User
+			Get-DTSStatusApi
+			Get-DTSPokerTableListApi
+			Add-DTSPokerTableApi
+			Get-DTSPokerTableApi
+			Join-DTSPokerTableApi
+			Get-DTSUserListApi
+			Add-DTSUserApi
+			Get-DTSUserApi
 		}
 	}
 	catch {
