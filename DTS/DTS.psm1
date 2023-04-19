@@ -80,7 +80,8 @@ function Initialize-DTS {
 			Get-DTSPokerTableListApi
 			Add-DTSPokerTableApi
 			Get-DTSPokerTableApi
-			Join-DTSPokerTableApi
+			Register-DTSPokerTableParticipantApi
+			Unregister-DTSPokerTableParticipantApi
 			Get-DTSUserListApi
 			Add-DTSUserApi
 			Get-DTSUserApi

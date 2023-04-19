@@ -189,9 +189,9 @@ function Get-DTSPokerTableApi {
     } -ArgumentList @{"PokerBasePath" = $script:_poker_base_bath}
 }
 
-function Join-DTSPokerTableApi {
+function Register-DTSPokerTableParticipantApi {
 
-    Add-PodeRoute -Method Put -Path '/api/v1/dts/poker/jointable'-ScriptBlock {
+    Add-PodeRoute -Method Put -Path '/api/v1/dts/poker/registerparticipant'-ScriptBlock {
 
         param (
 			$inputArgs
@@ -205,7 +205,7 @@ function Join-DTSPokerTableApi {
             . $PSScriptRoot\DTSEndpointsCommon.ps1
             . $PSScriptRoot\DTSEndpointsPoker.ps1
 
-            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/poker/jointable" -Component "Join-DTSPokerTableApi" -Type "Info"
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/poker/registerparticipant" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
 
             # Get URL based properties
             $PokerTableName = $WebEvent.Query['name']
@@ -223,36 +223,109 @@ function Join-DTSPokerTableApi {
 
             # Get properties from input args
             $PokerBasePath = $($inputArgs["PokerBasePath"])
-            Write-DTSLog -Message "Participant ""$PokerTableParticipant"" asked to join table with name ""$PokerTableName"" and id ""$PokerTableId""" -Component "Join-DTSPokerTableApi" -Type "Info"
+            Write-DTSLog -Message "Register participant ""$PokerTableParticipant"" to join table with name ""$PokerTableName"" and id ""$PokerTableId""" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
 
             # Get poker table
             $_poker_table = Get-DTSPokerTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -PokerTableSecret $PokerTableSecret
-            Write-DTSLog -Message "Found poker table with Id $($_poker_table.pokerTableId)" -Component "Join-DTSPokerTableApi" -Type "Info"
+            Write-DTSLog -Message "Found poker table with Id $($_poker_table.pokerTableId)" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
 
             if($null -eq $_poker_table.pokerTableParticipants) {
-                Write-DTSLog -Message "No participants in object, initialize array" -Component "Join-DTSPokerTableApi" -Type "Info"
+                Write-DTSLog -Message "No participants in object, initialize array" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
                 $_poker_table_participants = @()
                 $_poker_table.pokerTableParticipants = $_poker_table_participants
             }
 
             # Add participant to poker table
             if(-Not ($_poker_table.pokerTableParticipants.Contains($PokerTableParticipant))) {
-                Write-DTSLog -Message "Participant ""$PokerTableParticipant"" not in list, add it" -Component "Join-DTSPokerTableApi" -Type "Info"
+                Write-DTSLog -Message "Participant ""$PokerTableParticipant"" not in list, add it" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
                 $_poker_table.pokerTableParticipants += $PokerTableParticipant
             } else {
-                Write-DTSLog -Message "Participant ""$PokerTableParticipant"" is already in list" -Component "Join-DTSPokerTableApi" -Type "Info"
+                Write-DTSLog -Message "Participant ""$PokerTableParticipant"" is already in list" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
             }
 
             # Save poker table to filesystem
             # TODO: Move to central save function
-            Write-DTSLog -Message "Save table to file" -Component "Join-DTSPokerTableApi" -Type "Info"
+            Write-DTSLog -Message "Save table to file" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
             Save-DTSPokerTable -PokerBasePath $PokerBasePath -PokerTable $_poker_table
 
         }
         catch {
-            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Join-DTSPokerTableApi" -Type "Error"
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Register-DTSPokerTableParticipantApi" -Type "Error"
             $_poker_table = New-Object -Type psobject
-            $_poker_table | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested table" -Force
+            $_poker_table | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to register participant to table" -Force
+            $_poker_table | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+        }
+        finally {
+            # return table to requester
+            Write-PodeJsonResponse -Value ($_poker_table | ConvertTo-Json)
+        }
+    } -ArgumentList @{"PokerBasePath" = $script:_poker_base_bath}
+}
+
+function Unregister-DTSPokerTableParticipantApi {
+
+    Add-PodeRoute -Method Put -Path '/api/v1/dts/poker/unregisterparticipant'-ScriptBlock {
+
+        param (
+			$inputArgs
+		)
+
+        $_poker_table = $null
+
+        try {
+
+            # Load functions
+            . $PSScriptRoot\DTSEndpointsCommon.ps1
+            . $PSScriptRoot\DTSEndpointsPoker.ps1
+
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/poker/unregisterparticipant" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Info"
+
+            # Get URL based properties
+            $PokerTableName = $WebEvent.Query['name']
+            $PokerTableId = $WebEvent.Query['id']
+            $PokerTableSecret = $WebEvent.Query['secret']
+            $PokerTableParticipant = $WebEvent.Query['participant']
+
+            if([string]::IsNullOrEmpty($PokerTableName) -and [string]::IsNullOrEmpty($PokerTableId)) {
+                throw "No poker table name or Id given"
+            }
+
+            if([string]::IsNullOrEmpty($PokerTableParticipant)) {
+                throw "No poker table participant given"
+            }
+
+            # Get properties from input args
+            $PokerBasePath = $($inputArgs["PokerBasePath"])
+            Write-DTSLog -Message "Unregister participant ""$PokerTableParticipant"" asked from table with name ""$PokerTableName"" and id ""$PokerTableId""" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Info"
+
+            # Get poker table
+            $_poker_table = Get-DTSPokerTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -PokerTableSecret $PokerTableSecret
+            Write-DTSLog -Message "Found poker table with Id $($_poker_table.pokerTableId)" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Info"
+
+            if($null -eq $_poker_table.pokerTableParticipants) {
+                Write-DTSLog -Message "No participants in object, initialize array" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Info"
+                $_poker_table_participants = @()
+                $_poker_table.pokerTableParticipants = $_poker_table_participants
+            }
+
+            # Add participant to poker table
+            if(-Not ($_poker_table.pokerTableParticipants.Contains($PokerTableParticipant))) {
+                Write-DTSLog -Message "Participant ""$PokerTableParticipant"" not in list" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Info"
+            } else {
+                Write-DTSLog -Message "Participant ""$PokerTableParticipant"" is in list. Remove it" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Info"
+                $_poker_table.pokerTableParticipants -= $PokerTableParticipant
+            }
+
+            # Save poker table to filesystem
+            # TODO: Move to central save function
+            Write-DTSLog -Message "Save table to file" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Info"
+            Save-DTSPokerTable -PokerBasePath $PokerBasePath -PokerTable $_poker_table
+
+        }
+        catch {
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Unregister-DTSPokerTableParticipantApi" -Type "Error"
+            $_poker_table = New-Object -Type psobject
+            $_poker_table | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to unregister participant from table" -Force
             $_poker_table | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
         }
         finally {

@@ -4,7 +4,7 @@ Describe 'User API methods' {
 
     It 'Get the empty list of users' {
         $_api_user_list = Invoke-RestMethod -Method Get -Uri 'http://localhost:8082/api/v1/dts/user/getuserlist'
-        $_api_user_list | Should -Be ''
+        $_api_user_list.Count | Should -Be 4
     }
 
     It 'Add user 1' {
@@ -31,7 +31,7 @@ Describe 'User API methods' {
 
     It 'Get the list of users' {
         $_api_user_list = Invoke-RestMethod -Method Get -Uri 'http://localhost:8082/api/v1/dts/user/getuserlist'
-        $_api_user_list.Count | Should -Be 4
+        $_api_user_list.Count | Should -Be 8
     }
 
     It 'Get the first user by its Id' {

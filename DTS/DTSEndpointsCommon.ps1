@@ -50,7 +50,7 @@ function Write-DTSLog {
     # Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogdir"
     # Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtslogfile"
 
-    # TODO: This is staticall added because i was not able to get the values from outside
+    # TODO: This is statically added because i was not able to get the values from outside
     $script:_log_file_dir = "C:\ProgramData\Frickeldave\DTS-Pester\DTS"
     $script:_log_file_name = "DTS.log"
     $script:_log_target = "File"
