@@ -26,7 +26,11 @@ GET http://localhost:8082/api/v1/dts/poker/gettable?name=sprint05 HTTP/1.1
 
 ###
 # Join to an existing table
-PUT http://localhost:8082/api/v1/dts/poker/jointable?name=sprint05&secret=ThatsMyPassword5&participant=user5 HTTP/1.1
+PUT http://localhost:8082/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPassword5&participant=4f79467e-bcfb-4ced-aad2-24bb849dfe18
+
+###
+# Join to an existing table with invalid password
+PUT http://localhost:8082/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPasswordInvalid&participant=4f79467e-bcfb-4ced-aad2-24bb849dfe18
 
 
 ###

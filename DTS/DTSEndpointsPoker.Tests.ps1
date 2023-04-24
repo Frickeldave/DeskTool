@@ -57,4 +57,9 @@ Describe 'Poker API methods' {
         $_api_poker_table = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPassword1&participant=80a69c0c-60a4-43b1-b249-26fc033ad6c6"
         $_api_poker_table.pokerTableParticipants.Count | Should -Be 4
     }
+
+    It 'Try to register to poker table without permissions' {
+        $_api_poker_table = Invoke-RestMethod -Method Put -Uri "http://localhost:8082/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPasswordInvalid&participant=5cd67325-258b-4a15-962d-1ff34f880d2a"
+        $_api_poker_table.pokerTableParticipants.Count | Should -Be 0
+    }
 }

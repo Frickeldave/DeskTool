@@ -227,7 +227,11 @@ function Register-DTSPokerTableParticipantApi {
 
             # Get poker table
             $_poker_table = Get-DTSPokerTable -PokerBasePath $PokerBasePath -PokerTableId $PokerTableId -PokerTableName $PokerTableName -PokerTableSecret $PokerTableSecret
-            Write-DTSLog -Message "Found poker table with Id $($_poker_table.pokerTableId)" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
+            if([bool]($_poker_table.PSobject.Properties.name -match "pokerTableParticipants") -eq $true) {
+                Write-DTSLog -Message "Found poker table with Id $($_poker_table.pokerTableId)" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
+            } else {
+                throw "You are not permitted to join table with Id $($_poker_table.pokerTableId)"
+            }
 
             if($null -eq $_poker_table.pokerTableParticipants) {
                 Write-DTSLog -Message "No participants in object, initialize array" -Component "Register-DTSPokerTableParticipantApi" -Type "Info"
