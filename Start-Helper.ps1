@@ -43,11 +43,12 @@ function Add-DTTargetDir {
     
     [CmdletBinding()]
     param (
-        [switch]$Test,
-        [string]$DirName
+        [string]$BasePath,
+        [string]$DirName,
+        [switch]$Test
     )
 
-    $_target_dir = "$env:ProgramData\Frickeldave\$DirName"
+    $_target_dir = "$BasePath\$DirName"
     
     if($Test) {
 

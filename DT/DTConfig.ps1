@@ -14,7 +14,7 @@ function Initialize-DTConfig {
     $script:_config_folder = $ConfigFolder
     $script:_config_file = $ConfigFile
 
-    Initialize-DTCConfig -ConfigBasePath $_dt_base_path_user -ConfigFolder "DT" -ConfigFile $_dt_config_file
+    Initialize-DTCConfig -ConfigBasePath $ConfigBasePath -ConfigFolder "DT" -ConfigFile $ConfigFile
 }
 
 function Get-DTConfigValue {
@@ -31,7 +31,6 @@ function Get-DTConfigValue {
     {
         "common/dtlogdir" { if ([string]::IsNullOrEmpty($_dtc_config.common.dtlogdir)) { $_dtc_ret="" } else { $_dtc_ret=$_dtc_config.common.dtlogdir } }
         "common/dtlogfile" { if ([string]::IsNullOrEmpty($_dtc_config.common.dtlogfile)) { $_dtc_ret="default.log" } else { $_dtc_ret=$_dtc_config.common.dtlogfile } }
-        
         "common/dtlogtarget" { 
             if ([string]::IsNullOrEmpty($_dtc_config.common.dtlogtarget)) { 
                 $_dtc_ret="File" 
@@ -39,8 +38,9 @@ function Get-DTConfigValue {
                 $_dtc_ret=$_dtc_config.common.dtlogtarget 
             } 
         }
-
         "common/dttheme" { if ([string]::IsNullOrEmpty($_dtc_config.common.dttheme)) { $_dtc_ret="Auto" } else { $_dtc_ret=$_dtc_config.common.dttheme } }
+        "common/dtserveractive" { $_dtc_ret = [System.Convert]::ToBoolean($_dtc_config.common.dtserveractive) }
+        "common/dtlogrefresh" { $_dtc_ret = [System.Convert]::ToBoolean($_dtc_config.common.dtlogrefresh) }
         
         default { $_dtc_ret = Get-DTCConfigValue -ConfigBasePath $script:_config_base_path -ConfigFolder $script:_config_folder -ConfigFile $script:_config_file -ConfigGroup $ConfigGroup -ConfigName $ConfigName }
     }

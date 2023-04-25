@@ -8,7 +8,7 @@
     CompanyName = 'Frickeldave'
     Copyright = '(c) David Koenig. All rights reserved.'
     Description = 'DeskTool is a multi-functional tool for agile teams'
-    FunctionsToExport = 'Start-DT'
+    FunctionsToExport = 'Initialize-DT'
     CmdletsToExport = ''
     VariablesToExport = ''
     AliasesToExport = ''

@@ -1,13 +1,13 @@
 {
     "common": {
         "dtlocalport":"8081",
-        "dtserveractive":"true",
-        "dtserveraddress":"192.168.51.123",
-        "dtserverport":"8081",
+        "dtserveractive":"false",
+        "dtserveraddress":"localhost",
+        "dtserverport":"8082",
         "dtlogtarget":"Console",
         "dtlogdir":"",
         "dtlogfile":"",
-        "dtlogrefresh":"true",
+        "dtlogrefresh":"false",
         "dtteamnames":"default\nblackknights",
         "dttheme":"Auto"
     },

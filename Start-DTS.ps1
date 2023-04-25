@@ -6,14 +6,12 @@ param (
 
 . $PSScriptRoot\Start-Helper.ps1
 
-
-
 try {
     # Remove module first to get the newest version in session
     if (Get-Module DTS) { 
         Remove-Module DTS -Force
     }
-    $_target_dir = Add-DTTargetDir -DirName "DTS" -Test:$Test
+    $_target_dir = Add-DTTargetDir -BasePath "$($env:ProgramData)\Frickeldave" -DirName "DTS" -Test:$Test
 
     # Copy all needed files into target directory
     Install-DTFile -SourceFile "$PSScriptRoot\DTS\DTS.psd1" -TargetFile "$_target_dir\DTS.psd1" -Test:$Test
