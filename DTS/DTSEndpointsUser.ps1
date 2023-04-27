@@ -78,9 +78,6 @@ function Add-DTSUserApi {
             . $PSScriptRoot\DTSEndpointsCommon.ps1
             . $PSScriptRoot\DTSEndpointsUser.ps1
 
-            # Get properties from input args
-            $UserBasePath = $($inputArgs["UserBasePath"])
-
             Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/adduser" -Component "Add-DTSUserApi" -Type "Info"
 
             # Get URL based properties
@@ -88,10 +85,12 @@ function Add-DTSUserApi {
             $UserSecret = $WebEvent.Query['secret']
             $_user_secret_salt = $(-join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object {[char]$_}))
             $_user_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($UserSecret)$($_user_secret_salt)")) -Algorithm SHA256).Hash
-            $UserSecret = $null
             $_user_guid = [guid]::NewGuid().ToString()
 
             Write-DTSLog -Message "Requested to create user with name ""$UserName"" and id ""$_user_guid""" -Component "Add-DTSUserApi" -Type "Info"
+            
+            # Get properties from input args
+            $UserBasePath = $($inputArgs["UserBasePath"])
 
             # Initialize json variable which we will return
             $_user_json=$null
@@ -126,7 +125,7 @@ function Add-DTSUserApi {
             }
 
             # format object
-            $_user_obj = Format-DTSUser -User $_user_obj
+            $_user_obj = Format-DTSUser -User $_user_obj -UserSecret $UserSecret
         }
         catch {
             Write-DTSLog -Message "$($_.Exception.Message)" -Component "Add-DTSUserApi" -Type "Error"
@@ -180,6 +179,73 @@ function Get-DTSUserApi {
             Write-PodeJsonResponse -Value ($_user | ConvertTo-Json)
         }
     } -ArgumentList @{"UserBasePath" = $script:_user_base_bath}
+}
+
+Format-DTSUser {
+    [CmdletBinding()]
+    param (
+        $User,
+        [string]$UserSecret
+    )
+
+    # Do not anything when nothing is give
+    if([string]::IsNullOrEmpty($User)) {
+        return $User
+    }
+
+    $_user_authenticated = $false
+
+    # Authenticate when a password is given (otherwise will create a minimal object)
+    if(-Not [string]::IsNullOrEmpty($UserSecret)) {
+        Write-DTSLog -Message "Try to authenticate against the user" -Component "Format-DTSUser" -Type "Info"
+        $_user_authenticated = Grant-DTSUserAccess -User $User -UserSecret $UserSecret
+    }
+
+    # Authenticated, return full object (without secrets)
+    if($_user_authenticated) {
+        Write-DTSLog -Message "Return full object" -Component "Format-DTSUser" -Type "Info"
+        $_user_obj = $User
+        $_user_obj.PSObject.Properties.Remove("userSalt")
+        $_user_obj.PSObject.Properties.Remove("userSecret")
+
+    # Not authenticated, create the minimal object
+    } else {
+        Write-DTSLog -Message "Return minimal object" -Component "Format-DTSUser" -Type "Info"
+        $_user_obj = New-Object -Type psobject
+        $_user_obj | Add-Member -MemberType NoteProperty -Name "userId" -Value $User.userId -Force
+        $_user_obj | Add-Member -MemberType NoteProperty -Name "userName" -Value $User.userName -Force
+        $_user_obj | Add-Member -MemberType NoteProperty -Name "userTimestamp" -Value $User.userTimestamp -Force
+    }
+    return $_user_obj
+}
+
+function Grant-DTSUserAccess {
+
+    [OutputType([bool])]
+
+    [CmdletBinding()]
+    param (
+        $User,
+        [string]$UserSecret
+    )
+
+    # Do not anything when nothing is give
+    if([string]::IsNullOrEmpty($User)) {
+        return $false
+    }
+
+    # Create the hash value from given secret
+    Write-DTSLog -Message "Create hash from given secret" -Component "Grant-DTSUserAccess" -Type "Info"
+    $_user_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($User)$($User.userSalt)")) -Algorithm SHA256).Hash
+    $UserSecret = $null
+
+    if($_user_secret_hash -ne $($User.userSecret)) {
+        Write-DTSLog -Message "Secret did not match" -Component "Grant-DTSUserAccess" -Type "Info"
+        return $false
+    }
+
+    Write-DTSLog -Message "Secret OK" -Component "Grant-DTSUserAccess" -Type "Info"
+    return $true
 }
 
 function Get-DTSUser {

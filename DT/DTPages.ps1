@@ -63,7 +63,7 @@ function Get-DTPageLogin {
 
     #now, add a new custom authentication validator using the scheme you created above
     $_auth_scheme | Add-PodeAuth -Name Login -ScriptBlock {
-        param($client, $username, $password)
+        param($client, $username, $secret)
         
         #Load functions
         . $PSScriptRoot\DTPages.ps1
@@ -72,6 +72,7 @@ function Get-DTPageLogin {
         # check if the client is valid in some database
         return @{
             User = @{
+                
                 ID ='M0R7Y302'
                 Name = 'Morty'
                 Type = 'Human'
