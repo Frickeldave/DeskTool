@@ -14,7 +14,7 @@ function Initialize-PokerEndpoint {
 
     Write-DTSLog -Message "Create all needed directories for the poker endpoint" -Component "Initialize-PokerEndpoint"
     if (-Not (Test-Path $ConfigBasePath\$ConfigFolder)) {
-        New-Item -Path $ConfigBasePath\$ConfigFolder -ItemType Directory | Out-Null
+        New-Item -Path $ConfigBasePath\$ConfigFolder -ItemType Directory  | Out-Null
     }
 
     if (-Not (Test-Path $ConfigBasePath\$ConfigFolder\$EndpointFolder)) {

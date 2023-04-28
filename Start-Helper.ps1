@@ -44,32 +44,28 @@ function Add-DTTargetDir {
     [CmdletBinding()]
     param (
         [string]$BasePath,
-        [string]$DirName,
         [switch]$Test
     )
 
-    $_target_dir = "$BasePath\$DirName"
-    
     if($Test) {
 
         # Stop previously created and running test jobs
-        if (-not ($null -eq (Get-Job -Name "Start-DTS-Pester" -ErrorAction SilentlyContinue))) { 
-            Get-Job -Name "Start-DTS-Pester" | Where-Object { $_.State -eq "Completed" } | Stop-Job
-            Get-Job -Name "Start-DTS-Pester" | Remove-Job -Force
+        if (-not ($null -eq (Get-Job -Name "Start-DTS-Test" -ErrorAction SilentlyContinue))) { 
+            Get-Job -Name "Start-DTS-Test" | Where-Object { $_.State -eq "Completed" } | Stop-Job
+            Get-Job -Name "Start-DTS-Test" | Remove-Job -Force
         }
 
         Import-DTModule -ModuleName "PSScriptAnalyzer" -ModuleVersion "1.21.0"
 
-        $_target_dir = "$env:ProgramData\Frickeldave\$DirName-Pester"
-        if(Test-Path "$_target_dir") {
-            Remove-Item "$_target_dir" -Recurse
+
+        if(Test-Path "$BasePath") {
+            Remove-Item "$BasePath" -Recurse
         }
     }
 
-    if (-Not (Test-Path $_target_dir)) {
-        New-Item -Path $_target_dir -ItemType Directory | Out-Null
+    if (-Not (Test-Path $BasePath)) {
+        New-Item -Path $BasePath -ItemType Directory | Out-Null
     }
 
-    return $_target_dir
-
+    return $BasePath
 }

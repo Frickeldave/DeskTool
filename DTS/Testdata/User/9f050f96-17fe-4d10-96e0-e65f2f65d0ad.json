@@ -1,7 +1,9 @@
 {
   "userId": "9f050f96-17fe-4d10-96e0-e65f2f65d0ad",
-  "userName": "pester01",
-  "userSecret": "D36FE057F788AFFC8318A6A5B0C31BB42C6833B42379B94FE27E21286E03BA55",
-  "userSalt": "yKMnb",
+  "userName": "schennk",
+  "userFirstname": "Knut",
+  "userLastName": "Schenn",
+  "userSecret": "B74E61418A91BBD80746FAB4F62AB3331072EAD30A17C609AEF7468BC9E54361",
+  "userSalt": "vPKfa",
   "userTimestamp": "2023-04-19 07:04"
 }

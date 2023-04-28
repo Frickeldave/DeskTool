@@ -1,9 +1,6 @@
 {
     "common": {
         "dtsserverport":"8082",
-        "dtslogtarget":"File",
-        "dtslogdir":"",
-        "dtslogfile":"DTS.log",
         "dtslogrefresh":"true"
     }
 }

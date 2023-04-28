@@ -1,50 +1,66 @@
 
-# Request status of webservice
-GET http://localhost:8082/api/v1/dts/status HTTP/1.1
+@_baseUrl=http://localhost:8082
+@_header=Content-Type: application/json
+@_auth=Basic c2NoZW5uazpJQW1Vc2VyMDE=
+
+# Authenticate to API with user schennk
+POST {{_baseUrl}}/login
+Authorization: {{_auth}}
+
+###
+
+POST http://localhost:8082/login 
+###
+# Get user list
+GET {{_baseUrl}}/api/v1/dts/user/getuserlist HTTP/1.1
+Authorization: {{_auth}}
+
+###
+GET {{_baseUrl}}/api/v1/dts/status HTTP/1.1
 
 ###
 # Get all tables
-GET http://localhost:8082/api/v1/dts/poker/gettablelist HTTP/1.1
+GET {{_baseUrl}}/api/v1/dts/poker/gettablelist HTTP/1.1
 
 ###
 # Create table "sprint05"
-POST http://localhost:8082/api/v1/dts/poker/addtable?name=sprint05&secret=ThatsMyPassword5 HTTP/1.1
+POST {{_baseUrl}}/api/v1/dts/poker/addtable?name=sprint05&secret=ThatsMyPassword5 HTTP/1.1
 
 
 ###
 # Get table "sprint05" with all details by name
-GET http://localhost:8082/api/v1/dts/poker/gettable?name=sprint05&secret=ThatsMyPassword5 HTTP/1.1
+GET {{_baseUrl}}/api/v1/dts/poker/gettable?name=sprint05&secret=ThatsMyPassword5 HTTP/1.1
 
 ###
 # Get table "sprint05" with all details by id
-GET http://localhost:8082/api/v1/dts/poker/gettable?id=a3e90d89-200b-4a5f-933a-97c26eaec33b&secret=ThatsMyPassword5 HTTP/1.1
+GET {{_baseUrl}}/api/v1/dts/poker/gettable?id=a3e90d89-200b-4a5f-933a-97c26eaec33b&secret=ThatsMyPassword5 HTTP/1.1
 
 ###
 # Get table "sprint05" with all basic infos by name
-GET http://localhost:8082/api/v1/dts/poker/gettable?name=sprint05 HTTP/1.1
+GET {{_baseUrl}}/api/v1/dts/poker/gettable?name=sprint05 HTTP/1.1
 
 
 ###
 # Join to an existing table
-PUT http://localhost:8082/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPassword5&participant=4f79467e-bcfb-4ced-aad2-24bb849dfe18
+PUT {{_baseUrl}}/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPassword5&participant=4f79467e-bcfb-4ced-aad2-24bb849dfe18
 
 ###
 # Join to an existing table with invalid password
-PUT http://localhost:8082/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPasswordInvalid&participant=4f79467e-bcfb-4ced-aad2-24bb849dfe18
+PUT {{_baseUrl}}/api/v1/dts/poker/registerparticipant?name=sprint01&secret=ThatsMyPasswordInvalid&participant=4f79467e-bcfb-4ced-aad2-24bb849dfe18
 
 
 ###
 # Get user list
-GET http://localhost:8082/api/v1/dts/user/getuserlist HTTP/1.1
+GET {{_baseUrl}}/api/v1/dts/user/getuserlist HTTP/1.1
 
 ###
 # Add user05
-POST http://localhost:8082/api/v1/dts/user/adduser?name=user05&secret=ThatsMyPassword5 HTTP/1.1
+POST {{_baseUrl}}/api/v1/dts/user/adduser?name=user05&secret=ThatsMyPassword5 HTTP/1.1
 
 ###
 # Get user05 by name
-GET http://localhost:8082/api/v1/dts/user/getuser?name=user05
+GET {{_baseUrl}}/api/v1/dts/user/getuser?name=user05
 
 ###
 # Get user05 by id
-GET http://localhost:8082/api/v1/dts/user/getuser?id=f948fe56-2ba7-43bf-80cd-4e016ca86b28
+GET {{_baseUrl}}/api/v1/dts/user/getuser?id=f948fe56-2ba7-43bf-80cd-4e016ca86b28

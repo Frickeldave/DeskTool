@@ -1,28 +1,3 @@
-$script:_dts_log_file_dir = $null
-$script:_dts_log_file_name = $null
-$script:_dts_log_target = $null
-
-function Initialize-DTCLog {
-    [CmdletBinding()]
-    param (
-        [string]$LogBasePath,
-        [string]$LogFolder,
-        [string]$LogFileDir,
-        [string]$LogFileName,
-        [string]$LogTarget
-    )
-
-	$script:_dts_log_file_dir = $(if([string]::IsNullOrEmpty($LogFileDir)) { "$LogBasePath\$LogFolder" } else { $LogFileDir })
-	$script:_dts_log_file_name = $(if([string]::IsNullOrEmpty($LogFileName)) { "default.log" } else { $LogFileName })
-	$script:_dts_log_target = $(if([string]::IsNullOrEmpty($LogTarget)) { "Console" } else { $LogTarget })
-
-    if (-Not (Test-Path $script:_dts_log_file_dir)) {
-        New-Item -Path $script:_dts_log_file_dir -ItemType Directory | Out-Null
-    }
-
-}
-
-
 
 function Write-DTCLog {
     param (
@@ -36,8 +11,18 @@ function Write-DTCLog {
         [string]$Component="Main",
 
         [Parameter(Mandatory=$false)]
-        [ValidateSet("Error", "Warning", "Info")]
-        [string]$Type="Info"
+        [ValidateSet("", "Error", "Warning", "Info")]
+        [string]$Type="Info",
+
+        [Parameter(Mandatory=$false)]
+        [string]$LogFileDir,
+
+        [Parameter(Mandatory=$false)]
+        [string]$LogFileName,
+
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("File", "Console")]
+        [string]$LogTarget
     )
 
     $_datetime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -48,21 +33,21 @@ function Write-DTCLog {
 
     $_message="$_datetime $_type $Component - $Message"
 
-    if($script:_dts_log_target -eq "File") {
+    if($LogTarget -eq "File") {
 
-        if($null -eq $script:_dts_log_file_dir -and $IsLinux) {
+        if($null -eq $LogFileDir -and $IsLinux) {
             $_logdir = "/tmp"
         }
-        elseif($null -eq $script:_dts_log_file_dir -and $IsWindows) {
+        elseif($null -eq $LogFileDir -and $IsWindows) {
             $_logdir = "$env:TEMP"
         } else {
-            $_logdir = $script:_dts_log_file_dir
+            $_logdir = $LogFileDir
         }
 
-        if($null -eq $script:_dts_log_file_name) {
+        if($null -eq $LogFileName) {
             $_logfile = "app.log"
         } else {
-            $_logfile = $script:_dts_log_file_name
+            $_logfile = $LogFileName
         }
 
         # Test if file is acccessable

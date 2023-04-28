@@ -1,22 +1,3 @@
-$script:_config_base_path = $null
-$script:_config_folder = $null
-$script:_config_file = $null
-
-function Initialize-DTSConfig {
-    [CmdletBinding()]
-    param (
-        [string]$ConfigBasePath,
-        [string]$ConfigFolder,
-        [string]$ConfigFile
-    )
-
-    $script:_config_base_path = $ConfigBasePath
-    $script:_config_folder = $ConfigFolder
-    $script:_config_file = $ConfigFile
-
-    Initialize-DTCConfig -ConfigBasePath $ConfigBasePath -ConfigFolder "DTS" -ConfigFile $ConfigFile
-}
-
 function Get-DTSConfigValue {
 
     [CmdletBinding()]
@@ -25,7 +6,7 @@ function Get-DTSConfigValue {
         [string]$ConfigName
     )
 
-    $_dts_config = Get-Content "$script:_config_base_path\$script:_config_folder\$script:_config_file" | ConvertFrom-Json
+    $_dts_config = Get-Content "$PSScriptRoot\DTSConfig.json" | ConvertFrom-Json
 
     Switch ("$ConfigGroup/$ConfigName")
     {
@@ -39,7 +20,7 @@ function Get-DTSConfigValue {
                 $_dtc_ret=$_dts_config.common.dtslogtarget
             }
         }
-        default { $_dtc_ret = Get-DTCConfigValue -ConfigBasePath $script:_config_base_path -ConfigFolder $script:_config_folder -ConfigFile $script:_config_file -ConfigGroup $ConfigGroup -ConfigName $ConfigName }
+        default { $_dtc_ret = Get-DTCConfigValue -ConfigBasePath $PSScriptRoot -ConfigFile "DTSConfig.json" -ConfigGroup $ConfigGroup -ConfigName $ConfigName }
     }
     return $_dtc_ret;
 }
