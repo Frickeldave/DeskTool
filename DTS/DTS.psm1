@@ -82,8 +82,6 @@ function Initialize-DTS {
 				$UserSecret = $null
 				$_user_authenticated = ($_user_secret_hash -eq $($_user.userSecret))
 
-				Write-DTSLog -Message "Compare: ""$_user_secret_hash"" with ""$($_user.userSecret)""" -Component "Auth-Scheme" -Type "Info"
-
 				if ($_user_authenticated) {
 					Write-DTSLog -Message "User is authenticated" -Component "Auth-Scheme" -Type "Info"
 					return @{
