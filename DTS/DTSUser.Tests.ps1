@@ -14,11 +14,11 @@ Describe 'User login tests' {
 
     It 'Login with no sid should fail' {
         $_result = $null
-        $_result = Invoke-RestMethod -Uri $_url/api/v1/dts/user/get -Method Get -SkipHttpErrorCheck -UseBasicParsing | Select-Object -Expand StatusCode
+        try { Invoke-RestMethod -Uri $_url/api/v1/dts/user/get -Method Get } catch {$_result = $_.Exception.Response.StatusCode}
         $_result | Should -Be 401
         
         $_result = $null
-        $_result = Invoke-RestMethod -Uri $_url/api/v1/dts/user/getlist -Method Get -SkipHttpErrorCheck -UseBasicParsing | Select-Object -Expand StatusCode
+        try { Invoke-RestMethod -Uri $_url/api/v1/dts/user/getlist -Method Get } catch {$_result = $_.Exception.Response.StatusCode}
         $_result | Should -Be 401
     }
 

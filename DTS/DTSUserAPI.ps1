@@ -1,36 +1,39 @@
-function Get-DTSUserApi {
+function Get-DTSUserAPI {
 
-    Write-DTSLog -Message "Load user/get api" -Component "Get-DTSUserListAPI" -Type "Info"
+    Write-DTSLog -Message "Load user/get api" -Component "Get-DTSUserAPI" -Type "Info"
 
     Add-PodeRoute -Method Get -Path '/api/v1/dts/user/get' -Authentication 'Login' -ScriptBlock {
 
-        $_user = $null
+        $_return = $null
 
         try {
             # Load functions
             . $PSScriptRoot\DTSUserDB.ps1
             . $PSScriptRoot\DTSLog.ps1
 
-            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/get" -Component "Get-DTSUserApi" -Type "Info"
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/get" -Component "Get-DTSUserAPI" -Type "Info"
 
             # Get URL based properties
             $UserName = $WebEvent.Query['name']
             $UserId = $WebEvent.Query['id']
 
-            Write-DTSLog -Message "Requested user with name ""$UserName"" and id ""$UserId""" -Component="Get-DTSUserApi" -Type "Info"
+            Write-DTSLog -Message "Requested user with name ""$UserName"" and id ""$UserId""" -Component "Get-DTSUserAPI" -Type "Info"
 
             # Get user
-            $_user = Get-DTSUserDB -UserName $UserName -UserId $UserId
+            $_return = Get-DTSUserDB -UserName $UserName -UserId $UserId
+            $_return = Format-DTSUser -User $_return
         }
         catch {
-            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Get-DTSUserApi" -Type "Error"
-            $_user = New-Object -Type psobject
-            $_user | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested user" -Force
-            $_user | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Get-DTSUserAPI" -Type "Error"
+            $_return = New-Object -Type psobject
+            $_return | Add-Member -MemberType NoteProperty -Name "Component" -Value "Get-DTSUserAPI" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested user" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
 
         } finally {
             # return user to requester
-            Write-PodeJsonResponse -Value ($_user | ConvertTo-Json)
+            Write-DTSLog -Message "Return user data data" -Component "Get-DTSUserAPI" -Type "Info"
+            Write-PodeJsonResponse -Value ($_return | ConvertTo-Json)
         }
     }
 }
@@ -40,6 +43,8 @@ function Get-DTSUserListAPI {
     Write-DTSLog -Message "Load user/getlist api" -Component "Get-DTSUserListAPI" -Type "Info"
 
     Add-PodeRoute -Method Get -Path '/api/v1/dts/user/getlist' -Authentication 'Login' -ScriptBlock {
+
+        [Array]$_return = $null
 
         try {
             # Load functions
@@ -52,23 +57,26 @@ function Get-DTSUserListAPI {
 
             # Call function to read all user files
             Write-DTSLog -Message "Load users from file system" -Component "Get-DTSUserListAPI" -Type "Info"
-            $_return_obj_list = Get-DTSUserListDB -UserName $UserName
+            $_return = Get-DTSUserListDB -UserName $UserName
 
-            Write-DTSLog -Message "Return data" -Component "Get-DTSUserListAPI" -Type "Info"
-            if($null -eq $_return_obj_list) {
-                $_return_obj_list = ""
+            foreach($_user in $_return) {
+                $_user = Format-DTSUser -User $_user
             }
-            Write-PodeJsonResponse -Value ($_return_obj_list | ConvertTo-Json)
         }
         catch {
             Write-DTSLog -Message "$($_.Exception.Message)" -Component "Get-DTSUserListAPI" -Type "Error"
-            $_user_list_obj = New-Object -Type psobject
-            $_user_list_obj | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get users" -Force
-            $_user_list_obj | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
-            Write-PodeJsonResponse -Value ($_user_list_obj | ConvertTo-Json)
+            $_return = New-Object -Type psobject
+            $_return | Add-Member -MemberType NoteProperty -Name "Component" -Value "Get-DTSUserListAPI" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get user list" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+        } finally {
+            Write-DTSLog -Message "Return data" -Component "Get-DTSUserListAPI" -Type "Info"
+            Write-PodeJsonResponse -Value ($_return | ConvertTo-Json)
         }
     }
 }
+
+
 
 # function Add-DTSUserAPI {
 

@@ -29,7 +29,7 @@ function Get-DTSUserDB {
     # Get the user by its name
     } elseif (-Not [string]::IsNullOrEmpty($UserName)) {
         Write-DTSLog -Message "Execute Get-DTSUserList to get user by name" -Component "Get-DTSUserDB" -Type "Info"
-        [Array]$_user_list = Get-DTSUserListDB -UserBasePath $user_base_path -UserName $UserName
+        [Array]$_user_list = Get-DTSUserListDB -UserName $UserName
         if($($_user_list.Count) -eq 1) {
             $_user = $_user_list[0]
         } else {
@@ -80,4 +80,26 @@ function Get-DTSUserListDB {
 
     Write-DTSLog -Message "Found $($_return_list.Count) user objects" -Component "Get-DTSUserListDB" -Type "Info"
     return $_return_list
+}
+
+
+function Format-DTSUser {
+
+    [CmdletBinding()]
+    param (
+        $User
+    )
+
+    Write-DTSLog -Message "Format user ""$User.userName""" -Component="Format-DTSUser" -Type "Info"
+
+    # Do not anything when nothing is give
+    if([string]::IsNullOrEmpty($User)) {
+        return $User
+    }
+
+
+    $User.PSObject.Properties.Remove("userSecret")
+    $User.PSObject.Properties.Remove("userSalt")
+
+    return $User
 }

@@ -1,6 +1,6 @@
 {
     "common": {
         "dtsserverport":"8082",
-        "dtslogrefresh":"true"
+        "dtslogrefresh":"false"
     }
 }

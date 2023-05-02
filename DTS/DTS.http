@@ -8,15 +8,22 @@ POST {{_baseUrl}}/login
 Authorization: {{_auth}}
 
 ###
+GET {{_baseUrl}}/api/v1/dts/status HTTP/1.1
 
-POST http://localhost:8082/login 
 ###
-# Get user list
-GET {{_baseUrl}}/api/v1/dts/user/getuserlist HTTP/1.1
+# Get user schennk by id
+GET {{_baseUrl}}/api/v1/dts/user/get?id=9f050f96-17fe-4d10-96e0-e65f2f65d0ad HTTP/1.1
 Authorization: {{_auth}}
 
 ###
-GET {{_baseUrl}}/api/v1/dts/status HTTP/1.1
+# Get user schennk by name
+GET {{_baseUrl}}/api/v1/dts/user/get?name=schennk HTTP/1.1
+Authorization: {{_auth}}
+
+### 
+# Get user list
+GET {{_baseUrl}}/api/v1/dts/user/getlist HTTP/1.1
+Authorization: {{_auth}}
 
 ###
 # Get all tables
