@@ -65,10 +65,6 @@ try {
             }
         }
         while ($($_api_status.status) -ne "OK")
-
-            # Copy testdata
-            Copy-Item -Path "$PSScriptRoot\DTS\Testdata\User\*.json" -Destination "$_target_dir\data\db\user"
-            
             Import-DTModule -ModuleName "Pester" -ModuleVersion "5.4.1"
 
             Invoke-Pester $PSScriptRoot\DTS\DTS.Tests.ps1

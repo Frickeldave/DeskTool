@@ -12,13 +12,15 @@ Describe 'User login tests' {
         $_user01_sid | Should -Not -Be $null
     }
 
-    # It 'Login with user schennk' {
-
-    #     $_sec_password = ConvertTo-SecureString $_user01_password -AsPlainText -Force
-    #     $_credential = New-Object System.Management.Automation.PSCredential($_user01_username, $_sec_password)
-    #     $_user01_sid = (Invoke-WebRequest -Uri "$_url/login" -Method Post -Credential $_credential -AllowUnencryptedAuthentication).Headers['pode.sid']
-    #     $_user01_sid | Should -Not -Be $null
-    # }
+    It 'Login with no sid should fail' {
+        $_result = $null
+        $_result = Invoke-RestMethod -Uri $_url/api/v1/dts/user/get -Method Get -SkipHttpErrorCheck -UseBasicParsing | Select-Object -Expand StatusCode
+        $_result | Should -Be 401
+        
+        $_result = $null
+        $_result = Invoke-RestMethod -Uri $_url/api/v1/dts/user/getlist -Method Get -SkipHttpErrorCheck -UseBasicParsing | Select-Object -Expand StatusCode
+        $_result | Should -Be 401
+    }
 
     It 'Get the list of users' {
         [Array]$_userList = Invoke-RestMethod -Uri $_url/api/v1/dts/user/getlist -Method Get -Headers @{ 'pode.sid' = "$_user01_sid" }

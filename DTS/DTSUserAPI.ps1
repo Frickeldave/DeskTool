@@ -1,3 +1,40 @@
+function Get-DTSUserApi {
+
+    Write-DTSLog -Message "Load user/get api" -Component "Get-DTSUserListAPI" -Type "Info"
+
+    Add-PodeRoute -Method Get -Path '/api/v1/dts/user/get' -Authentication 'Login' -ScriptBlock {
+
+        $_user = $null
+
+        try {
+            # Load functions
+            . $PSScriptRoot\DTSUserDB.ps1
+            . $PSScriptRoot\DTSLog.ps1
+
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/get" -Component "Get-DTSUserApi" -Type "Info"
+
+            # Get URL based properties
+            $UserName = $WebEvent.Query['name']
+            $UserId = $WebEvent.Query['id']
+
+            Write-DTSLog -Message "Requested user with name ""$UserName"" and id ""$UserId""" -Component="Get-DTSUserApi" -Type "Info"
+
+            # Get user
+            $_user = Get-DTSUserDB -UserName $UserName -UserId $UserId
+        }
+        catch {
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Get-DTSUserApi" -Type "Error"
+            $_user = New-Object -Type psobject
+            $_user | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested user" -Force
+            $_user | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+
+        } finally {
+            # return user to requester
+            Write-PodeJsonResponse -Value ($_user | ConvertTo-Json)
+        }
+    }
+}
+
 function Get-DTSUserListAPI {
 
     Write-DTSLog -Message "Load user/getlist api" -Component "Get-DTSUserListAPI" -Type "Info"
@@ -108,51 +145,3 @@ function Get-DTSUserListAPI {
 #         }
 #     } -ArgumentList @{"UserBasePath" = $script:_user_base_bath}
 # }
-
-# function Get-DTSUserApi {
-
-#     Add-PodeRoute -Method Get -Path '/api/v1/dts/user/getuser' -Authentication 'Login'-ScriptBlock {
-
-#         param (
-# 			$inputArgs
-# 		)
-
-#         $_user = $null
-
-#         try {
-#             # Load functions
-#             . $PSScriptRoot\DTSEndpointsCommon.ps1
-#             . $PSScriptRoot\DTSEndpointsUser.ps1
-
-#             Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/getuser" -Component "Get-DTSUserApi" -Type "Info"
-
-#             # Get URL based properties
-#             $UserName = $WebEvent.Query['name']
-#             $UserId = $WebEvent.Query['id']
-
-#             # Get properties from input args
-#             $UserBasePath = $($inputArgs["UserBasePath"])
-
-#             Write-DTSLog -Message "Requested user with name ""$UserName"" and id ""$UserId""" -Component="Get-DTSUserApi" -Type "Info"
-
-#             # Get user
-#             $_user = Get-DTSUser -UserBasePath $UserBasePath -UserId $UserId -UserName $UserName
-#         }
-#         catch {
-#             Write-DTSLog -Message "$($_.Exception.Message)" -Component "Get-DTSUserApi" -Type "Error"
-#             $_user = New-Object -Type psobject
-#             $_user | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to get the requested user" -Force
-#             $_user | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
-
-#         } finally {
-#             # return user to requester
-#             Write-PodeJsonResponse -Value ($_user | ConvertTo-Json)
-#         }
-#     } -ArgumentList @{"UserBasePath" = $script:_user_base_bath}
-# }
-
-
-
-
-
-

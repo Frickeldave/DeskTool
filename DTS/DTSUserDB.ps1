@@ -61,10 +61,7 @@ function Get-DTSUserListDB {
     # Initialize array variable which we will return
     $_return_list = @()
 
-    Write-DTSLog -Message "Search for user files in ""$user_base_path""" -Component "Get-DTSUserListDB" -Type "Info"
-
     foreach($_user_file in (Get-ChildItem -Path "$user_base_path" | Where-Object { $_.Name -like "*.json" } )) {
-        Write-DTSLog -Message "Found file ""$($_user_file.Name)""" -Component "Get-DTSUserListDB" -Type "Info"
         try {
             $_user = (Get-Content -Path "$user_base_path\$($_user_file.Name)" -Raw) | ConvertFrom-Json
 
@@ -83,34 +80,4 @@ function Get-DTSUserListDB {
 
     Write-DTSLog -Message "Found $($_return_list.Count) user objects" -Component "Get-DTSUserListDB" -Type "Info"
     return $_return_list
-}
-
-function Grant-DTSUserAccessDB {
-
-    [OutputType([bool])]
-
-    [CmdletBinding()]
-    param (
-        $User,
-        [string]$UserSecret
-    )
-
-    # Do not anything when nothing is give
-    if([string]::IsNullOrEmpty($User)) {
-        return $false
-    }
-
-    # Create the hash value from given secret
-    Write-DTSLog -Message "Create hash from given secret" -Component "Grant-DTSUserAccessDB" -Type "Info"
-    $_user_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($UserSecret)$($User.userSalt)")) -Algorithm SHA256).Hash
-
-    $UserSecret = $null
-
-    if($_user_secret_hash -ne $($User.userSecret)) {
-        Write-DTSLog -Message "Secret did not match" -Component "Grant-DTSUserAccessDB" -Type "Info"
-        return $false
-    }
-
-    Write-DTSLog -Message "Secret OK" -Component "Grant-DTSUserAccessDB" -Type "Info"
-    return $true
 }

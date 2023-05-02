@@ -78,8 +78,11 @@ function Initialize-DTS {
 				$_user = Get-DTSUserListDB -UserName $UserName
 
 				Write-DTSLog -Message "Authenticate user ""$($_user.userName)""" -Component "Auth-Scheme" -Type "Info"
-				$_user_authenticated = Grant-DTSUserAccessDB -User $_user -UserSecret $UserSecret
+				$_user_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($UserSecret)$($_user.userSalt)")) -Algorithm SHA256).Hash
 				$UserSecret = $null
+				$_user_authenticated = ($_user_secret_hash -eq $($_user.userSecret))
+
+				Write-DTSLog -Message "Compare: ""$_user_secret_hash"" with ""$($_user.userSecret)""" -Component "Auth-Scheme" -Type "Info"
 
 				if ($_user_authenticated) {
 					Write-DTSLog -Message "User is authenticated" -Component "Auth-Scheme" -Type "Info"
@@ -90,6 +93,8 @@ function Initialize-DTS {
 							Type = 'Human'
 						}
 					}
+				} else {
+					Write-DTSLog -Message "User is not authenticated" -Component "Auth-Scheme" -Type "Info"
 				}
 
 				# Authentication failed
@@ -103,14 +108,7 @@ function Initialize-DTS {
 			# Load all API functions
 			Get-DTSCommonStatusAPI
 			Get-DTSUserListAPI
-			# Get-DTSPokerTableListApi
-			# Add-DTSPokerTableApi
-			# Get-DTSPokerTableApi
-			# Register-DTSPokerTableParticipantApi
-			# Unregister-DTSPokerTableParticipantApi
-			# Get-DTSUserListApi
-			# Add-DTSUserApi
-			# Get-DTSUserApi
+			Get-DTSUserApi
 		}
 	}
 	catch {
