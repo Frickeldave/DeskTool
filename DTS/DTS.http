@@ -1,11 +1,27 @@
 
 @_baseUrl=http://localhost:8082
 @_header=Content-Type: application/json
-@_auth=Basic c2NoZW5uazpJQW1Vc2VyMDE=
+@_auth_schennk=Basic c2NoZW5uazpJQW1Vc2VyMDE=
+@_auth_pastea=Basic cGFzdGVhOklhbVVzZXIwNQ==
 
+### 
+# Create the new user "Andi Paste"
+POST {{_baseUrl}}/api/v1/dts/user/add?name=pastea&secret=IAmUser05 HTTP/1.1
+
+### 
+# Update the properties of user "Andi Paste" wiht user schennk which should fail
+PATCH  {{_baseUrl}}/api/v1/dts/user/update?name=pastea&firstname=Andie&lastname=Paste HTTP/1.1
+Authorization: {{_auth_schennk}}
+
+### 
+# Update the properties of user "Andi Paste"
+PATCH  {{_baseUrl}}/api/v1/dts/user/update?name=pastea&firstname=Andie&lastname=Paste HTTP/1.1
+Authorization: {{_auth_pastea}}
+
+###
 # Authenticate to API with user schennk
 POST {{_baseUrl}}/login
-Authorization: {{_auth}}
+Authorization: {{_auth_schennk}}
 
 ###
 GET {{_baseUrl}}/api/v1/dts/status HTTP/1.1
@@ -13,17 +29,18 @@ GET {{_baseUrl}}/api/v1/dts/status HTTP/1.1
 ###
 # Get user schennk by id
 GET {{_baseUrl}}/api/v1/dts/user/get?id=9f050f96-17fe-4d10-96e0-e65f2f65d0ad HTTP/1.1
-Authorization: {{_auth}}
+Authorization: {{_auth_schennk}}
 
 ###
 # Get user schennk by name
 GET {{_baseUrl}}/api/v1/dts/user/get?name=schennk HTTP/1.1
-Authorization: {{_auth}}
+Authorization: {{_auth_schennk}}
 
 ### 
 # Get user list
 GET {{_baseUrl}}/api/v1/dts/user/getlist HTTP/1.1
-Authorization: {{_auth}}
+Authorization: {{_auth_schennk}}
+
 
 ###
 # Get all tables

@@ -3,12 +3,14 @@
 These are user that are needed during automated tests.
 The passwords of the users are:
 
-| ID                                   | Username   | Password  |
-|--------------------------------------|------------|-----------|
-| 9f050f96-17fe-4d10-96e0-e65f2f65d0ad | schennk    | IAmUser01 |
-| 7f9e7dcd-86c8-492c-8d7a-adaaad24dd66 | clinger    | IAmUser02 |
-| 80a69c0c-60a4-43b1-b249-26fc033ad6c6 | sittert    | IAmUser03 |
-| 5cd67325-258b-4a15-962d-1ff34f880d2a | sfaehrlich | IAmUser04 |
+| ID                                   | Username   | Password  | Source   | Fullname        |
+|--------------------------------------|------------|-----------|----------|-----------------|
+| 9f050f96-17fe-4d10-96e0-e65f2f65d0ad | schennk    | IAmUser01 | Testdata | Knut Schenn     |
+| 7f9e7dcd-86c8-492c-8d7a-adaaad24dd66 | clinger    | IAmUser02 | Testdata | Caro Linger     |
+| 80a69c0c-60a4-43b1-b249-26fc033ad6c6 | sittert    | IAmUser03 | Testdata | Till Sitter     |
+| 5cd67325-258b-4a15-962d-1ff34f880d2a | sfaehrlich | IAmUser04 | Testdata | Sergej Fährlich |
+| ---                                  | pastea     | IAmUser05 | DTS.http | Andi Paste      |
+| ---                                  | wellem     | IAmUser06 | Pester   | Mirko Welle     |
 
 ## How to test with Powershell
 

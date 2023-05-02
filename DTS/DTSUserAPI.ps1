@@ -76,80 +76,85 @@ function Get-DTSUserListAPI {
     }
 }
 
+function Add-DTSUserAPI {
 
+    Write-DTSLog -Message "Load user/add api" -Component "Add-DTSUserAPI" -Type "Info"
 
-# function Add-DTSUserAPI {
+    Add-PodeRoute -Method Post -Path '/api/v1/dts/user/add' -ScriptBlock {
 
-#     Add-PodeRoute -Method Post -Path '/api/v1/dts/user/add' -ScriptBlock {
+        $_return = $null
 
-#         param (
-# 			$inputArgs
-# 		)
+        try {
 
-#         try {
+            # Load functions
+            . $PSScriptRoot\DTSUserDB.ps1
+            . $PSScriptRoot\DTSLog.ps1
 
-#             # Load functions
-#             . $PSScriptRoot\DTSUserDB.ps1
-#             . $PSScriptRoot\DTSLog.ps1
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/add" -Component "Add-DTSUserAPI" -Type "Info"
 
-#             Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/add" -Component "Add-DTSUserAPI" -Type "Info"
+            # Get URL based properties
+            $UserName = $WebEvent.Query['name']
+            $UserSecret = $WebEvent.Query['secret']
 
-#             # Get URL based properties
-#             $UserName = $WebEvent.Query['name']
-#             $UserSecret = $WebEvent.Query['secret']
-#             $_user_secret_salt = $(-join ((65..90) + (97..122) | Get-Random -Count 5 | ForEach-Object {[char]$_}))
-#             $_user_secret_hash = (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]"$($UserSecret)$($_user_secret_salt)")) -Algorithm SHA256).Hash
-#             $_user_guid = [guid]::NewGuid().ToString()
+            Write-DTSLog -Message "Requested to create user with name ""$UserName""" -Component "Add-DTSUserAPI" -Type "Info"
+            $_return = Add-DTSUserDB -UserName $UserName -UserSecret $UserSecret
 
-#             Write-DTSLog -Message "Requested to create user with name ""$UserName"" and id ""$_user_guid""" -Component "Add-DTSUserApi" -Type "Info"
+            # format object
+            $_return = Format-DTSUser -User $_return
+        }
+        catch {
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Add-DTSUserAPI" -Type "Error"
+            $_return = New-Object -Type psobject
+            $_return | Add-Member -MemberType NoteProperty -Name "Component" -Value "Add-DTSUserAPI" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to create user" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+        } finally {
+            # return json to requester
+            Write-PodeJsonResponse -Value ($_return | ConvertTo-Json)
+        }
+    }
+}
 
-#             # Get properties from input args
-#             $UserBasePath = $($inputArgs["UserBasePath"])
+function Update-DTSUserAPI {
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact='None')]
+    param()
+    $PSCmdlet.ShouldProcess("dummy")
 
-#             # Initialize json variable which we will return
-#             $_user_json=$null
+    Write-DTSLog -Message "Load user/update api" -Component "Update-DTSUserAPI" -Type "Info"
 
-#             # Call function to read all user files
-#             Write-DTSLog -Message "Check if user exist" -Component "Add-DTSUserApi" -Type "Info"
-#             $_user = (Get-DTSUser -UserBasePath $UserBasePath -UserName $UserName)
-#             if ($null -ne $_user) { throw "User already exist" }
+    Add-PodeRoute -Method Patch -Path '/api/v1/dts/user/update' -Authentication 'Login' -ScriptBlock {
 
-#             if($null -eq $_user -or "" -eq $_user) {
+        $_return = $null
 
-#                 # Create a powershell object with new user
-#                 Write-DTSLog -Message "User doesn't exist -> create new file" -Component "Add-DTSUserApi" -Type "Info"
+        try {
 
-#                 $_user_creation_timestamp = Get-Date -format "yyyy-MM-dd HH:MM"
+            # Load functions
+            . $PSScriptRoot\DTSUserDB.ps1
+            . $PSScriptRoot\DTSLog.ps1
 
-#                 $_user = New-Object -Type psobject
-#                 $_user | Add-Member -MemberType NoteProperty -Name "userId" -Value $_user_guid -Force
-#                 $_user | Add-Member -MemberType NoteProperty -Name "userName" -Value $UserName -Force
-#                 $_user | Add-Member -MemberType NoteProperty -Name "userSecret" -Value $_user_secret_hash -Force
-#                 $_user | Add-Member -MemberType NoteProperty -Name "userSalt" -Value $_user_secret_salt -Force
-#                 $_user | Add-Member -MemberType NoteProperty -Name "userTimestamp" -Value $_user_creation_timestamp -Force
+            Write-DTSLog -Message "Got incoming request on path /api/v1/dts/user/update" -Component "Update-DTSUserAPI" -Type "Info"
 
-#                 # Convert to json and save to file
-#                 Write-DTSLog -Message "Save file" -Component "Add-DTSUserApi" -Type "Info"
-#                 $_user_json = ($_user | ConvertTo-Json)
+            # Get URL based properties
+            $UserId = $WebEvent.Query['id']
+            $UserName = $WebEvent.Query['name']
+            $UserFirstName = $WebEvent.Query['firstname']
+            $UserLastName = $WebEvent.Query['lastname']
 
-#                 # TODO: Move this to a common-save-file method
-#                 $_user_json | Out-File -Append -Encoding UTF8 -FilePath "$UserBasePath\$_user_guid.json"
-#             } else {
-#                 # User already exist
-#                 Write-DTSLog -Message "User ""$UserName"" already exist" -Component "Add-DTSUserApi" -Type "Info"
-#             }
+            Write-DTSLog -Message "Requested to update user with id ""$UserId"" name ""$UserName""" -Component "Update-DTSUserAPI" -Type "Info"
+            $_return = Update-DTSUserDB -UserId $UserId -UserName $UserName -UserFirstName $UserFirstName -UserLastName $UserLastName
 
-#             # format object
-#             $_user = Format-DTSUser -User $_user
-#         }
-#         catch {
-#             Write-DTSLog -Message "$($_.Exception.Message)" -Component "Add-DTSUserApi" -Type "Error"
-#             $_user = New-Object -Type psobject
-#             $_user | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to create user" -Force
-#             $_user | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
-#         } finally {
-#             # return json to requester
-#             Write-PodeJsonResponse -Value ($_user | ConvertTo-Json)
-#         }
-#     } -ArgumentList @{"UserBasePath" = $script:_user_base_bath}
-# }
+            # format object
+            $_return = Format-DTSUser -User $_return
+        }
+        catch {
+            Write-DTSLog -Message "$($_.Exception.Message)" -Component "Update-DTSUserAPI" -Type "Error"
+            $_return = New-Object -Type psobject
+            $_return | Add-Member -MemberType NoteProperty -Name "Component" -Value "Update-DTSUserAPI" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Exception" -Value "Failed to update user" -Force
+            $_return | Add-Member -MemberType NoteProperty -Name "Message" -Value $($_.Exception.Message) -Force
+        } finally {
+            # return json to requester
+            Write-PodeJsonResponse -Value ($_return | ConvertTo-Json)
+        }
+    }
+}

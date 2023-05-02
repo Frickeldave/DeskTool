@@ -34,6 +34,10 @@ try {
    
 
     if($Test) { 
+
+        Get-Job -Name "DTS-Test" | Stop-Job
+        Get-Job -Name "DTS-Test" | Remove-Job
+
  
         Start-Job -Name "DTS-Test" -ScriptBlock {
             param (

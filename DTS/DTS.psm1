@@ -107,6 +107,8 @@ function Initialize-DTS {
 			Get-DTSCommonStatusAPI
 			Get-DTSUserListAPI
 			Get-DTSUserApi
+			Add-DTSUserAPI
+			Update-DTSUserAPI
 		}
 	}
 	catch {
