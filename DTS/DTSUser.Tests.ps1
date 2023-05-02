@@ -26,6 +26,15 @@ Describe 'User login tests' {
         [Array]$_userList = Invoke-RestMethod -Uri $_url/api/v1/dts/user/getlist -Method Get -Headers @{ 'pode.sid' = "$_user01_sid" }
         $_userList.Count | Should -Be 4
     }
+
+    It 'Create a new user and update properties' {
+        $_user = Invoke-RestMethod -Uri "$_url/api/v1/dts/user/add?name=wellem&secret=IAmUser06" -Method Post
+        $_user.userName | Should -Be "wellem"
+        
+        $_user = Invoke-RestMethod -Uri "$_url/api/v1/dts/user/update?name=wellem&firstname=Mirko&lastname=Welle" -Method Patch -Headers @{ 'pode.sid' = "$_user01_sid" }
+        $_user.userFirstname | Should -Be "Mirko"
+        $_user.userLastname | Should -Be "Welle"
+    }
 }
 
 # Describe 'User API methods' {
