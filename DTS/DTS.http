@@ -9,7 +9,7 @@
 POST {{_baseUrl}}/api/v1/dts/user/add?name=pastea&secret=IAmUser05 HTTP/1.1
 
 ### 
-# Update the properties of user "Andi Paste" wiht user schennk which should fail
+# Update the properties of user "Andi Paste" with user schennk which should fail
 PATCH  {{_baseUrl}}/api/v1/dts/user/update?name=pastea&firstname=Andie&lastname=Paste HTTP/1.1
 Authorization: {{_auth_schennk}}
 

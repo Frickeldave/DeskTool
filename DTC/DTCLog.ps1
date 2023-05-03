@@ -42,6 +42,7 @@ function Write-DTCLog {
             $_logdir = "$env:TEMP"
         } else {
             $_logdir = $LogFileDir
+            if (-Not (Test-Path "$_logdir")) { New-Item -Path "$_logdir" -ItemType Directory | Out-Null  }
         }
 
         if($null -eq $LogFileName) {

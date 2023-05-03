@@ -118,7 +118,7 @@ function Add-DTSUserAPI {
 function Update-DTSUserAPI {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact='None')]
     param()
-    $PSCmdlet.ShouldProcess("dummy")
+    $PSCmdlet.ShouldProcess("dummy") | Out-Null
 
     Write-DTSLog -Message "Load user/update api" -Component "Update-DTSUserAPI" -Type "Info"
 
@@ -140,8 +140,10 @@ function Update-DTSUserAPI {
             $UserFirstName = $WebEvent.Query['firstname']
             $UserLastName = $WebEvent.Query['lastname']
 
+            Write-DTSLog -Message "$($($WebEvent.Auth.User).getenumerator() | Sort-Object value -descending | Format-Table | Out-String)" -Component "Update-DTSUserAPI" -Type "Info"
+
             Write-DTSLog -Message "Requested to update user with id ""$UserId"" name ""$UserName""" -Component "Update-DTSUserAPI" -Type "Info"
-            $_return = Update-DTSUserDB -UserId $UserId -UserName $UserName -UserFirstName $UserFirstName -UserLastName $UserLastName
+            $_return = [PSCustomObject](Update-DTSUserDB -UserId $UserId -UserName $UserName -UserFirstName $UserFirstName -UserLastName $UserLastName)
 
             # format object
             $_return = Format-DTSUser -User $_return

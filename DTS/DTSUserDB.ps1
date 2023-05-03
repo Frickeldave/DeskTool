@@ -134,7 +134,7 @@ function Update-DTSUserDB {
         [string]$UserFirstName,
         [string]$UserLastName
     )
-    $PSCmdlet.ShouldProcess("dummy")
+    $PSCmdlet.ShouldProcess("dummy") | Out-Null
 
     [string]$user_base_path = "$PSScriptRoot\data\db\user"
 
@@ -143,7 +143,7 @@ function Update-DTSUserDB {
     $_old_user = (Get-DTSUserDB -UserId $UserId -UserName $UserName)
     if ($null -eq $_old_user) { throw "User doesn't exist" }
 
-    # Create a powershell object with new user
+    # Create a powershell object with updated user values
     Write-DTSLog -Message "User exist -> Update user" -Component "Update-DTSUserDB" -Type "Info"
 
     $_user_first_name = if([string]::IsNullOrEmpty($UserFirstName)) { $($_old_user.userFirstname) } else { $UserFirstName }
@@ -153,7 +153,7 @@ function Update-DTSUserDB {
     $_user | Add-Member -MemberType NoteProperty -Name "userName" -Value $($_old_user.userName) -Force
     $_user | Add-Member -MemberType NoteProperty -Name "userSecret" -Value $($_old_user.userSecret) -Force
     $_user | Add-Member -MemberType NoteProperty -Name "userSalt" -Value $($_old_user.userSalt) -Force
-    $_user | Add-Member -MemberType NoteProperty -Name "userTimestamp" -Value $($_old_user.Timestamp) -Force
+    $_user | Add-Member -MemberType NoteProperty -Name "userTimestamp" -Value $($_old_user.userTimestamp) -Force
     $_user | Add-Member -MemberType NoteProperty -Name "userFirstname" -Value $_user_first_name -Force
     $_user | Add-Member -MemberType NoteProperty -Name "userLastname" -Value $_user_last_name -Force
 
@@ -177,12 +177,9 @@ function Format-DTSUser {
     if([string]::IsNullOrEmpty($User)) {
         return $User
     }
-
     Write-DTSLog -Message "Format user object by removing secrets" -Component "Format-DTSUser" -Type "Info"
     $User.PSObject.Properties.Remove("userSecret")
     $User.PSObject.Properties.Remove("userSalt")
 
-    Write-DTSLog -Message "$User" -Component "Format-DTSUser" -Type "Info"
-    HIER TUT DIE FICKE EINFACH WIEDER MAL NICHT
     return $User
 }

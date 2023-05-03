@@ -86,9 +86,10 @@ function Initialize-DTS {
 					Write-DTSLog -Message "User is authenticated" -Component "Auth-Scheme" -Type "Info"
 					return @{
 						User = @{
-							ID =$_user.ID
-							Name = $_user.Name
+							ID = $_user.userId
+							Name = $_user.userName
 							Type = 'Human'
+							Roles = 'Administrator,User'
 						}
 					}
 				} else {
