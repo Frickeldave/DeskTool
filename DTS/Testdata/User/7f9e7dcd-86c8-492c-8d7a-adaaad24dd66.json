@@ -5,5 +5,6 @@
   "userLastName": "Linger",
   "userSecret": "5337BBB09FA40EA70FF1C9CB7FB4CA91CDEBA412D099A81B3E1AA5ABE26E3EBE",
   "userSalt": "qfUuD",
-  "userTimestamp": "2023-04-19 07:04"
+  "userTimestamp": "2023-04-19 07:04",
+  "userRoles": "User"
 }

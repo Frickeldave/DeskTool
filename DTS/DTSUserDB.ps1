@@ -165,12 +165,43 @@ function Update-DTSUserDB {
     return $_user
 }
 
+function Get-RoleMembership {
+
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param (
+        $User,
+        $Role
+    )
+
+    $_result = $false
+
+    # Check all preconditions to do a role check
+    if($null -ne $User -and (-Not ([string]::IsNullOrEmpty($($User.userRoles)))) -and (-Not [string]::IsNullOrEmpty($Role))) {
+
+        Write-DTSLog -Message "Check membership of user $($User.userName) in role $Role" -Component "Get-RoleMembership" -Type "Info"
+
+        # Add roles to an array
+        [Array]$_roles = $User.userRoles.Split(',')
+
+        foreach($_role in $_roles) {
+            if($_role -eq $Role) {
+                $_result = $true
+                break
+            }
+        }
+    }
+
+    Write-DTSLog -Message "Result is: $_result" -Component "Get-RoleMembership" -Type "Info"
+    return $_result
+}
 
 function Format-DTSUser {
 
     [CmdletBinding()]
     param (
-        $User
+        $User,
+        [switch]$WithRole
     )
 
     # Do not anything when nothing is given
@@ -180,6 +211,7 @@ function Format-DTSUser {
     Write-DTSLog -Message "Format user object by removing secrets" -Component "Format-DTSUser" -Type "Info"
     $User.PSObject.Properties.Remove("userSecret")
     $User.PSObject.Properties.Remove("userSalt")
+    if(-Not $WithRole) { $User.PSObject.Properties.Remove("userRoles") }
 
     return $User
 }

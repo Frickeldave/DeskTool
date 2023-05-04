@@ -140,7 +140,17 @@ function Update-DTSUserAPI {
             $UserFirstName = $WebEvent.Query['firstname']
             $UserLastName = $WebEvent.Query['lastname']
 
-            Write-DTSLog -Message "$($($WebEvent.Auth.User).getenumerator() | Sort-Object value -descending | Format-Table | Out-String)" -Component "Update-DTSUserAPI" -Type "Info"
+            if([string]::IsNullOrEmpty($UserId) -and [string]::IsNullOrEmpty($UserName)) {
+                throw "Neither username or userid is set"
+            }
+
+            Write-DTSLog -Message "Check permissions of requesting user" -Component "Update-DTSUserAPI" -Type "Info"
+            $_isAdministrator = Get-RoleMembership -User $($WebEvent.Auth.User) -Role "Administrator"
+
+            Write-DTSLog -Message "URL Name: $UserName; Session: $($WebEvent.Auth.User.userName)" -Component "Update-DTSUserAPI" -Type "Info"
+            if(-Not $_isAdministrator -and $($WebEvent.Auth.User.userName)) {
+                throw "Not allowed to update the user ""$UserName"""
+            }
 
             Write-DTSLog -Message "Requested to update user with id ""$UserId"" name ""$UserName""" -Component "Update-DTSUserAPI" -Type "Info"
             $_return = [PSCustomObject](Update-DTSUserDB -UserId $UserId -UserName $UserName -UserFirstName $UserFirstName -UserLastName $UserLastName)

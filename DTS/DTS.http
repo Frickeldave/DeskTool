@@ -9,12 +9,12 @@
 POST {{_baseUrl}}/api/v1/dts/user/add?name=pastea&secret=IAmUser05 HTTP/1.1
 
 ### 
-# Update the properties of user "Andi Paste" with user schennk which should fail
+# Update the properties of user "Andi Paste" with user schennk (he is administrator)
 PATCH  {{_baseUrl}}/api/v1/dts/user/update?name=pastea&firstname=Andie&lastname=Paste HTTP/1.1
 Authorization: {{_auth_schennk}}
 
 ### 
-# Update the properties of user "Andi Paste"
+# Update the properties of user "Andi Paste" with user pastea
 PATCH  {{_baseUrl}}/api/v1/dts/user/update?name=pastea&firstname=Andie&lastname=Paste HTTP/1.1
 Authorization: {{_auth_pastea}}
 
@@ -22,7 +22,10 @@ Authorization: {{_auth_pastea}}
 # Authenticate to API with user schennk
 POST {{_baseUrl}}/login
 Authorization: {{_auth_schennk}}
-
+###
+# Authenticate to API with user pastea
+POST {{_baseUrl}}/login
+Authorization: {{_auth_pastea}}
 ###
 GET {{_baseUrl}}/api/v1/dts/status HTTP/1.1
 
