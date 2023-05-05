@@ -1,6 +1,6 @@
 {
     "common": {
-        "dtlocalport":"8081",
+        "dtlocalport":"18081",
         "dtserveractive":"false",
         "dtserveraddress":"localhost",
         "dtserverport":"8082",

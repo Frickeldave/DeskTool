@@ -8,7 +8,7 @@ function Initialize-DTS {
 	. $PSScriptRoot\DTCLog.ps1
 	. $PSScriptRoot\DTSLog.ps1
 
-	# Common functions
+	# Helper functions
 	. $PSScriptRoot\DTCHelper.ps1
 
 	# Config functions
@@ -20,10 +20,11 @@ function Initialize-DTS {
 	. $PSScriptRoot\DTSUserDB.ps1
 	. $PSScriptRoot\DTSUserAPI.ps1
 
+	# Initialize directories
 	New-Item -Path "$PSScriptRoot\data\db\user" -ItemType Directory -Force | Out-Null
 
 	# Initialize the configuration
-	Initialize-DTCConfig -ConfigBasePath $PSScriptRoot -ConfigFile "DTSConfig.json"
+	Copy-Item -Path "$PSScriptRoot\DTSConfig.json" -Destination "$PSScriptRoot\data\DTSConfig.json" | Out-Null
 
 	# Get the configuration values needed in the module
 	$_dts_podeweb_port = $(Get-DTSConfigValue -ConfigGroup "common" -ConfigName "dtsserverport")
@@ -63,7 +64,7 @@ function Initialize-DTS {
 			}
 
 			Write-DTSLog -Message "Setup middleware" -Component "Module"  -Type "Info" -LogSource "main"
-			Enable-PodeSessionMiddleware -Duration 120 -Extend -UseHeaders -Strict # TRict will include IP and UserAgent
+			Enable-PodeSessionMiddleware -Duration 120 -Extend -UseHeaders -Strict # Strict will include IP and UserAgent
 
 			# setup basic auth (base64> username:password in header)
 			Write-DTSLog -Message "Setup authentication scheme" -Component "Module"  -Type "Info" -LogSource "main"

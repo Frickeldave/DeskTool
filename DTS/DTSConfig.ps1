@@ -20,7 +20,8 @@ function Get-DTSConfigValue {
                 $_dtc_ret=$_dts_config.common.dtslogtarget
             }
         }
-        default { $_dtc_ret = Get-DTCConfigValue -ConfigBasePath $PSScriptRoot -ConfigFile "DTSConfig.json" -ConfigGroup $ConfigGroup -ConfigName $ConfigName }
+
+        default { $_dtc_ret = Get-DTCConfigValue -ConfigPath $PSScriptRoot -ConfigFile "DTSConfig.json" -ConfigGroup $ConfigGroup -ConfigName $ConfigName }
     }
     return $_dtc_ret;
 }
